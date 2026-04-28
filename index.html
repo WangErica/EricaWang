@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Erica Wang — UI/UX Designer & Frontend Developer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="description" content="Erica Wang — UI/UX Designer and Frontend Developer based in New York. NYU Tandon IDM graduate. View portfolio of UX research, brand identity, and frontend projects.">
+  <meta property="og:title" content="Erica Wang — UI/UX Designer & Frontend Developer">
+  <meta property="og:description" content="Portfolio of UX research, brand identity, and frontend development projects.">
+</head>
+<body>
+
+<script>
+// Modal close — defined early so inline onclick always finds it
+function closeAlsoModal(modalId, videoId) {
+  var modal = document.getElementById(modalId);
+  if (!modal) return;
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+  if (videoId) {
+    var v = document.getElementById(videoId);
+    if (v) { v.pause(); v.currentTime = 0; }
+  }
+}
+</script>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div id="vanta-bg"></div>
+
+<div class="page">
+
+  <!-- Nav -->
+  <nav id="nav">
+    <a href="#" class="nav-logo">Erica <span>Wang</span></a>
+    <div class="nav-links">
+      <a href="#work">Work</a>
+      <a href="#about">About</a>
+      <a href="pdf/Erica_Wang_Resume.pdf" target="_blank" class="resume-btn">Resume ↗</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-tag">Hi there, I'm Erica 👋</div>
+    <h1 class="hero-name">Erica Wang</h1>
+    <div class="hero-subtitle">UI/UX Designer & Frontend Developer</div>
+    <p class="hero-desc">
+      I design intuitive interfaces and build them — from UX research & UI systems to frontend code in React. Seeking full-time roles in UI/UX design and frontend development.
+    </p>
+    <div class="hero-scroll">
+      <div class="scroll-line"></div>
+      Scroll to explore <span class="scroll-arrow">↓</span>
+    </div>
+  </section>
+
+  <!-- Works -->
+  <section class="works-section" id="work">
+    <!-- Preview left -->
+    <div class="preview-panel">
+      <div class="preview-inner" id="previewInner">
+        <div class="preview-placeholder">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          Hover a project
+        </div>
+        <video id="preview-video" muted playsinline loop></video>
+        <img id="preview-image" alt="Project preview" />
+        <div class="preview-label" id="previewLabel"></div>
+      </div>
+    </div>
+
+    <!-- Work list right -->
+    <div class="works-list">
+      <div class="section-eyebrow">Selected Work</div>
+
+      <div class="work-item" data-type="image" data-src="images/NomNom.png" data-link="NomNom.html">
+        <div class="work-row">
+          <div>
+            <div class="work-title">NomNom Brand</div>
+            <div class="work-desc">Built a full brand from nothing — logo, colors, typography, brand voice, and a 20-page guidelines doc for a fictional snack-lovers' community called the Nomsters. Every color is named after a snack.</div>
+          </div>
+          <div class="work-meta">
+            <div class="work-year">Spring 2025</div>
+            <div class="work-tags"><span class="tag">Branding</span><span class="tag">Figma</span></div>
+            <div class="work-arrow">→</div>
+          </div>
+        </div>
+        <img class="work-thumb" src="images/NomNom.png" alt="NomNom Brand" />
+      </div>
+
+      <div class="work-item" data-type="video" data-src="videos/CityofTomorrowFinal.mp4" data-link="CoT.html">
+        <div class="work-row">
+          <div>
+            <div class="work-title">City of Tomorrow</div>
+            <div class="work-desc">What if every building in a city was shaped like an everyday object — and actually meant something? I built that city in Maya, 125 years in the future, for my senior capstone.</div>
+          </div>
+          <div class="work-meta">
+            <div class="work-year">Spring 2025</div>
+            <div class="work-tags"><span class="tag">3D / Maya</span><span class="tag">Concept</span></div>
+            <div class="work-arrow">→</div>
+          </div>
+        </div>
+        <img class="work-thumb" src="images/COTCityView.jpg" alt="City of Tomorrow" />
+      </div>
+
+      <div class="work-item" data-type="video" data-src="videos/WanderScape.mov" data-link="Wanderscape.html">
+        <div class="work-row">
+          <div>
+            <div class="work-title">WanderScape</div>
+            <div class="work-desc">Talked to real travelers, mapped what they actually wanted vs. what TripAdvisor gives them, then designed an app to fix that gap. Full UX process: research → wireframes → prototype.</div>
+          </div>
+          <div class="work-meta">
+            <div class="work-year">Fall 2024</div>
+            <div class="work-tags"><span class="tag">UX Research</span><span class="tag">Figma</span></div>
+            <div class="work-arrow">→</div>
+          </div>
+        </div>
+        <img class="work-thumb" src="images/WangE_1218_Environment.jpg" alt="WanderScape" />
+      </div>
+
+      <div class="work-item" data-type="video" data-src="videos/Smartbrella.mov" data-link="Smartbrella.html">
+        <div class="work-row">
+          <div>
+            <div class="work-title">SmartBrella</div>
+            <div class="work-desc">My team built a smart umbrella that opens when you clap — because 15% of people in the world can't easily open a regular one. Arduino + CAD + a Figma app with Bluetooth and weather alerts.</div>
+          </div>
+          <div class="work-meta">
+            <div class="work-year">Spring 2022</div>
+            <div class="work-tags"><span class="tag">Arduino</span><span class="tag">Figma</span><span class="tag">Accessibility</span></div>
+            <div class="work-arrow">→</div>
+          </div>
+        </div>
+        <img class="work-thumb" src="images/IMG_2836.jpg" alt="SmartBrella" />
+      </div>
+
+    </div>
+  </section>
+
+  <!-- More Work -->
+  <section class="also-section reveal">
+    <div class="section-label">More Work</div>
+    <p class="also-intro">Not everything fits neatly into a case study — here are some other things I've made and explored.</p>
+    <div class="also-grid">
+
+      <!-- Paddle Ball — video preview, click opens game -->
+      <div class="also-card"
+           onmouseenter="this.querySelector('video').play()"
+           onmouseleave="var v=this.querySelector('video');v.pause();v.currentTime=0;"
+           onclick="window.open('https://wangerica.github.io/CreativeCoding/Paddle%20Ball/index.html','_blank')">
+        <div class="also-card-preview">
+          <video muted playsinline loop>
+            <source src="videos/PaddleBall.mov" type="video/quicktime">
+          </video>
+        </div>
+        <div class="also-card-body">
+          <div class="also-card-title">Paddle Ball Game</div>
+          <div class="also-card-year">Fall 2023</div>
+          <div class="also-card-desc">Interactive browser game built with p5.js — hover to preview, click to play live.</div>
+          <div class="also-card-footer">
+            <div class="also-card-tags"><span class="tag">p5.js</span><span class="tag">JavaScript</span></div>
+            <span class="also-card-arrow">▶ Play ↗</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Etch-a-Sketch — video preview, click opens modal -->
+      <div class="also-card"
+           onmouseenter="var v=this.querySelector('video');v.playbackRate=1.5;v.play();"
+           onmouseleave="var v=this.querySelector('video');v.pause();v.currentTime=0;"
+           onclick="document.getElementById('etchModal').classList.add('open');var mv=document.getElementById('etchModalVideo');mv.playbackRate=1.5;mv.play();document.body.style.overflow='hidden';">
+        <div class="also-card-preview">
+          <video muted playsinline loop>
+            <source src="videos/MaxMSPProject.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="also-card-body">
+          <div class="also-card-title">Interactive Etch-a-Sketch</div>
+          <div class="also-card-year">Fall 2024</div>
+          <div class="also-card-desc">Physical computing — Max/MSP and Arduino recreating the classic drawing toy with modern interactive controls.</div>
+          <div class="also-card-footer">
+            <div class="also-card-tags"><span class="tag">Max/MSP</span><span class="tag">Arduino</span><span class="tag">Hardware</span></div>
+            <span class="also-card-arrow">▶ Watch</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recipe Log App — GitHub link -->
+      <div class="also-card"
+           onclick="window.open('https://github.com/WangErica/Recipe-Log-App/tree/main','_blank')">
+        <div class="also-card-preview" style="background:#0d1117;display:flex;align-items:center;justify-content:center;">
+          <svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <!-- Phone frame -->
+            <rect x="105" y="6" width="110" height="168" rx="12" fill="#1a1c1a" stroke="#2a2c2a" stroke-width="1.5"/>
+            <rect x="109" y="16" width="102" height="152" rx="8" fill="#111311"/>
+            <!-- Notch -->
+            <rect x="130" y="9" width="60" height="6" rx="3" fill="#111311"/>
+
+            <!-- App header -->
+            <rect x="109" y="16" width="102" height="28" rx="8" fill="#1e201e"/>
+            <rect x="109" y="36" width="102" height="8" fill="#1e201e"/>
+            <text x="160" y="34" font-family="sans-serif" font-size="8" fill="#e8e8e4" text-anchor="middle" font-weight="600">Recipe Log</text>
+
+            <!-- Search bar -->
+            <rect x="115" y="50" width="90" height="12" rx="4" fill="#252725"/>
+            <text x="122" y="59" font-family="sans-serif" font-size="6" fill="#555">Search recipes...</text>
+
+            <!-- Recipe card 1 -->
+            <rect x="115" y="68" width="90" height="28" rx="4" fill="#1e201e" stroke="#2a2c2a" stroke-width="0.8"/>
+            <rect x="115" y="68" width="28" height="28" rx="4" fill="#252725"/>
+            <!-- Fork icon in card 1 -->
+            <text x="129" y="85" font-family="sans-serif" font-size="10" fill="rgba(122,184,152,0.5)" text-anchor="middle">🍜</text>
+            <text x="151" y="79" font-family="sans-serif" font-size="6" fill="#e8e8e4" font-weight="500">Pasta Aglio e Olio</text>
+            <text x="151" y="88" font-family="sans-serif" font-size="5" fill="#666">Italian · 20 min</text>
+            <rect x="151" y="91" width="20" height="2" rx="1" fill="rgba(122,184,152,0.4)"/>
+
+            <!-- Recipe card 2 -->
+            <rect x="115" y="100" width="90" height="28" rx="4" fill="#1e201e" stroke="#2a2c2a" stroke-width="0.8"/>
+            <rect x="115" y="100" width="28" height="28" rx="4" fill="#252725"/>
+            <text x="129" y="117" font-family="sans-serif" font-size="10" fill="rgba(122,184,152,0.5)" text-anchor="middle">🥗</text>
+            <text x="151" y="111" font-family="sans-serif" font-size="6" fill="#e8e8e4" font-weight="500">Greek Salad</text>
+            <text x="151" y="120" font-family="sans-serif" font-size="5" fill="#666">Mediterranean · 10 min</text>
+            <rect x="151" y="123" width="28" height="2" rx="1" fill="rgba(122,184,152,0.4)"/>
+
+            <!-- Recipe card 3 (partial) -->
+            <rect x="115" y="132" width="90" height="20" rx="4" fill="#1e201e" stroke="#2a2c2a" stroke-width="0.8" opacity="0.6"/>
+            <rect x="115" y="132" width="28" height="20" rx="4" fill="#252725" opacity="0.6"/>
+            <text x="129" y="145" font-family="sans-serif" font-size="8" fill="rgba(122,184,152,0.3)" text-anchor="middle">🍱</text>
+            <text x="151" y="143" font-family="sans-serif" font-size="6" fill="#555" font-weight="500">Bento Bowl</text>
+
+            <!-- Bottom nav bar -->
+            <rect x="109" y="152" width="102" height="16" rx="0" fill="#1a1c1a"/>
+            <rect x="109" y="160" width="102" height="8" rx="8" fill="#1a1c1a"/>
+            <!-- Nav icons -->
+            <rect x="120" y="155" width="16" height="2" rx="1" fill="rgba(122,184,152,0.7)"/>
+            <rect x="152" y="155" width="16" height="2" rx="1" fill="#333"/>
+            <rect x="184" y="155" width="16" height="2" rx="1" fill="#333"/>
+            <!-- Active dot -->
+            <circle cx="128" cy="161" r="2" fill="rgba(122,184,152,0.8)"/>
+            <circle cx="160" cy="161" r="1.5" fill="#333"/>
+            <circle cx="192" cy="161" r="1.5" fill="#333"/>
+
+            <!-- Left side decorative code lines -->
+            <rect x="18" y="30" width="70" height="2" rx="1" fill="#1e201e"/>
+            <rect x="18" y="36" width="50" height="2" rx="1" fill="#1e201e"/>
+            <rect x="18" y="42" width="60" height="2" rx="1" fill="rgba(122,184,152,0.15)"/>
+            <rect x="18" y="48" width="40" height="2" rx="1" fill="#1e201e"/>
+            <rect x="22" y="54" width="55" height="2" rx="1" fill="#1e201e"/>
+            <rect x="22" y="60" width="45" height="2" rx="1" fill="rgba(122,184,152,0.1)"/>
+            <rect x="22" y="66" width="52" height="2" rx="1" fill="#1e201e"/>
+            <rect x="18" y="72" width="38" height="2" rx="1" fill="#1e201e"/>
+            <rect x="18" y="78" width="62" height="2" rx="1" fill="rgba(122,184,152,0.12)"/>
+            <rect x="22" y="84" width="48" height="2" rx="1" fill="#1e201e"/>
+            <rect x="22" y="90" width="35" height="2" rx="1" fill="#1e201e"/>
+            <text x="18" y="28" font-family="monospace" font-size="5" fill="rgba(122,184,152,0.3)">App.js</text>
+
+            <!-- Right side decorative -->
+            <rect x="232" y="30" width="60" height="2" rx="1" fill="#1e201e"/>
+            <rect x="232" y="36" width="45" height="2" rx="1" fill="rgba(122,184,152,0.12)"/>
+            <rect x="232" y="42" width="55" height="2" rx="1" fill="#1e201e"/>
+            <rect x="236" y="48" width="40" height="2" rx="1" fill="#1e201e"/>
+            <rect x="236" y="54" width="50" height="2" rx="1" fill="rgba(122,184,152,0.1)"/>
+            <rect x="232" y="60" width="42" height="2" rx="1" fill="#1e201e"/>
+            <text x="232" y="28" font-family="monospace" font-size="5" fill="rgba(122,184,152,0.3)">styles.js</text>
+          </svg>
+        </div>
+        <div class="also-card-body">
+          <div class="also-card-title">Recipe Log App</div>
+          <div class="also-card-year">Fall 2024</div>
+          <div class="also-card-desc">Mobile app for logging and browsing recipes, built with React Native for iOS and Android.</div>
+          <div class="also-card-footer">
+            <div class="also-card-tags"><span class="tag">React Native</span><span class="tag">GitHub</span></div>
+            <span class="also-card-arrow">↗</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3D Prop Design — video preview, click opens modal -->
+      <div class="also-card"
+           onmouseenter="var v=this.querySelector('video');v.playbackRate=0.75;v.play();"
+           onmouseleave="var v=this.querySelector('video');v.pause();v.currentTime=0;"
+           onclick="document.getElementById('propModal').classList.add('open');var mv=document.getElementById('propModalVideo');mv.playbackRate=0.75;mv.play();document.body.style.overflow='hidden';">
+        <div class="also-card-preview">
+          <video muted playsinline loop>
+            <source src="videos/WangE_1030_Prop.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="also-card-body">
+          <div class="also-card-title">3D Prop Design</div>
+          <div class="also-card-year">Fall 2023</div>
+          <div class="also-card-desc">3D modeled and rendered prop design — exploration of form, material, and environmental storytelling in Maya.</div>
+          <div class="also-card-footer">
+            <div class="also-card-tags"><span class="tag">Maya</span><span class="tag">3D Modeling</span></div>
+            <span class="also-card-arrow">▶ Watch</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Virus Simulator — image preview, click opens site -->
+      <div class="also-card"
+           onclick="window.open('https://wangerica.github.io/Virus_Simulator/index.html','_blank')">
+        <div class="also-card-preview">
+          <img src="images/virusSim.png" alt="Stay Safe Virus Simulator website preview" />
+        </div>
+        <div class="also-card-body">
+          <div class="also-card-title">Stay Safe — Virus Simulator</div>
+          <div class="also-card-year">Spring 2020</div>
+          <div class="also-card-desc">Educational COVID-era website with an interactive virus spread simulator, survey, and resource pages.</div>
+          <div class="also-card-footer">
+            <div class="also-card-tags"><span class="tag">HTML/CSS</span><span class="tag">JavaScript</span></div>
+            <span class="also-card-arrow">↗</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Maya Environment — image preview, click opens lightbox -->
+      <div class="also-card"
+           onclick="document.getElementById('envModal').classList.add('open');document.body.style.overflow='hidden';">
+        <div class="also-card-preview">
+          <img src="images/WangE_1218_Environment.jpg" alt="Maya Environment — 3D interior scene" />
+        </div>
+        <div class="also-card-body">
+          <div class="also-card-title">Maya Environment</div>
+          <div class="also-card-year">Fall 2023</div>
+          <div class="also-card-desc">A fully modeled and lit interior environment in Maya — exploring spatial design, lighting, and material rendering.</div>
+          <div class="also-card-footer">
+            <div class="also-card-tags"><span class="tag">Maya</span><span class="tag">3D Environment</span></div>
+            <span class="also-card-arrow">⤢ View</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Etch-a-Sketch Video Modal -->
+  <div class="also-modal" id="etchModal">
+    <div class="also-modal-bar">
+      <span class="also-modal-title">Interactive Etch-a-Sketch — Max/MSP & Arduino</span>
+      <button class="also-modal-close" onclick="closeAlsoModal('etchModal','etchModalVideo')">✕ Close</button>
+    </div>
+    <div class="also-modal-video">
+      <video id="etchModalVideo" controls playsinline onloadedmetadata="this.playbackRate=1.5;">
+        <source src="videos/MaxMSPProject.mp4" type="video/mp4">
+      </video>
+    </div>
+  </div>
+
+  <!-- 3D Prop Video Modal -->
+  <div class="also-modal" id="propModal">
+    <div class="also-modal-bar">
+      <span class="also-modal-title">3D Prop Design — Maya</span>
+      <button class="also-modal-close" onclick="closeAlsoModal('propModal','propModalVideo')">✕ Close</button>
+    </div>
+    <div class="also-modal-video">
+      <video id="propModalVideo" controls playsinline onloadedmetadata="this.playbackRate=0.75;">
+        <source src="videos/WangE_1030_Prop.mp4" type="video/mp4">
+      </video>
+    </div>
+  </div>
+
+  <!-- Maya Environment Modal -->
+  <div class="also-modal" id="envModal">
+    <div class="also-modal-bar">
+      <span class="also-modal-title">Maya Environment — 3D Interior Scene</span>
+      <button class="also-modal-close" onclick="closeAlsoModal('envModal',null)">✕ Close</button>
+    </div>
+    <div class="also-modal-video" style="display:flex;align-items:center;justify-content:center;background:#000;padding:24px;">
+      <img src="images/WangE_1218_Environment.jpg" alt="Maya Environment" style="max-width:100%;max-height:80vh;object-fit:contain;" />
+    </div>
+  </div>
+
+  <!-- About -->
+  <section class="about-section" id="about">
+    <div class="reveal">
+      <div class="section-label">About</div>
+      <h2 class="about-heading">I design with <em>empathy</em><br>and build with code</h2>
+      <p class="about-text">I'm a NYU Tandon grad in Integrated Design & Media — a program that lives at the crossroads of tech, design, and culture. I care about making things people actually enjoy using, which means I start with research and end with working code.</p>
+      <p class="about-text">What I love most is the full process: interviewing users, finding the "aha" in their frustrations, sketching, prototyping in Figma, then building it for real in React. I'm a Girls Who Code alum, fluent in Mandarin, and I spend my free time reverse-engineering things I find beautiful — a typeface, a physical space, someone else's UI that just feels right.</p>
+    </div>
+    <div class="reveal">
+      <div class="skills-grid">
+        <div>
+          <div class="skill-group-label">Design</div>
+          <ul class="skill-list">
+            <li>UX Research & Testing</li>
+            <li>Figma & Prototyping</li>
+            <li>Brand Identity</li>
+            <li>3D Modeling — Maya</li>
+            <li>Adobe Creative Suite</li>
+          </ul>
+        </div>
+        <div>
+          <div class="skill-group-label">Code</div>
+          <ul class="skill-list">
+            <li>HTML / CSS / JavaScript</li>
+            <li>React & React Native</li>
+            <li>Python & Arduino</li>
+            <li>p5.js & Max/MSP</li>
+            <li>GitHub</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="contact-section" id="contact">
+    <div class="reveal">
+      <div class="section-label">Contact</div>
+      <h2 class="contact-heading">Let's make<br>something <em>real</em></h2>
+      <p class="contact-sub">I'm actively looking for full-time UX/UI design and frontend roles — I'd love to hear what you're working on.<br>Reach out, say hi, let's make something worth using.</p>
+      <a href="mailto:erica.w2539@gmail.com" class="contact-email" id="contactEmailLink">erica.w2539@gmail.com →</a>
+    </div>
+    <div class="contact-right reveal">
+      <a href="pdf/Erica_Wang_Resume.pdf" target="_blank" class="contact-link">Resume ↗</a>
+      <a href="https://linkedin.com" target="_blank" class="contact-link">LinkedIn ↗</a>
+      <a href="tel:3479467305" class="contact-link">(347) 946-7305</a>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2025 Erica Wang</span>
+    <span>UI/UX Designer & Frontend Developer — New York</span>
+  </footer>
+
+</div>
+
+<!-- Load scripts in order -->
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="three.r134.min.js"></script>
+<script src="vanta.net.min.js"></script>
+<script src="js/main.js"></script>
+
+<script>
+// Backdrop click to close any also-modal
+document.querySelectorAll('.also-modal').forEach(modal => {
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('open');
+      document.body.style.overflow = '';
+      const v = modal.querySelector('video');
+      if (v) { v.pause(); v.currentTime = 0; }
+    }
+  });
+});
+
+// Escape key closes any open also-modal
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.also-modal.open').forEach(m => {
+      m.classList.remove('open');
+      document.body.style.overflow = '';
+      const v = m.querySelector('video');
+      if (v) { v.pause(); v.currentTime = 0; }
+    });
+  }
+});
+
+// Cursor effects for cards
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+document.querySelectorAll('.also-card').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor.classList.add('big'); ring.classList.add('big'); });
+  el.addEventListener('mouseleave', () => { cursor.classList.remove('big'); ring.classList.remove('big'); });
+});
+</script>
+
+</body>
+</html>

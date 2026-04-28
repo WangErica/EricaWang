@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>City of Tomorrow — Erica Wang</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0e0f0e; --bg2: #141614; --white: #f2f4f1;
+      --text-primary: rgba(242,244,241,0.88); --text-secondary: rgba(242,244,241,0.65);
+      --text-tertiary: rgba(242,244,241,0.38); --muted: rgba(242,244,241,0.65);
+      --dim: rgba(242,244,241,0.38); --accent: #7ab898;
+      --accent-dim: rgba(122,184,152,0.15); --border: rgba(242,244,241,0.1);
+    }
+    html, body { width: 100%; background: var(--bg); color: var(--white); font-family: 'Outfit', sans-serif; overflow-x: hidden; cursor: auto; }
+
+    /* Cursor */
+    .cursor { position: fixed; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); transition: width .18s,height .18s; box-shadow: 0 0 8px rgba(122,184,152,0.8); }
+    .cursor-ring { position: fixed; width: 38px; height: 38px; border: 1.5px solid var(--accent); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); opacity: 0.6; transition: opacity .2s; }
+    .cursor.big { width: 18px; height: 18px; }
+    .cursor-ring.big { opacity: 0.25; }
+
+    /* Noise */
+    body::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 2; opacity: 0.02; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 180px; }
+
+    /* ── Sticky Section Nav ── */
+    .section-nav {
+      position: fixed; right: 33px; top: 50%; transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 16px;
+      z-index: 90; align-items: flex-end;
+      pointer-events: none;
+    }
+    .section-nav-item {
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer; text-decoration: none;
+      color: var(--text-tertiary);
+      transition: color .25s;
+      pointer-events: auto;
+    }
+    .section-nav-item:hover { color: var(--accent); }
+    .section-nav-item.active { color: var(--accent); }
+    .section-nav-item.active .snav-dot { background: var(--accent); box-shadow: 0 0 6px rgba(122,184,152,0.6); transform: scale(1.4); }
+    .snav-label {
+      font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase;
+      opacity: 0.45; transition: opacity .2s;
+      white-space: nowrap;
+    }
+    .section-nav-item:hover .snav-label { opacity: 1; }
+    .section-nav-item.active .snav-label { opacity: 1; }
+    .snav-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--text-tertiary); flex-shrink: 0;
+      transition: background .25s, box-shadow .25s, transform .25s;
+    }
+    @media (max-width: 900px) { .section-nav { display: none; } }
+
+    /* Nav */
+    nav#nav { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 28px 56px; z-index: 100; transition: background .3s, border-color .3s, transform .4s ease, opacity .4s ease; }
+    nav#nav.scrolled { background: rgba(14,15,14,0.85); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); }
+    nav#nav.hidden { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 300; letter-spacing: 0.04em; color: var(--white); text-decoration: none; }
+    .nav-logo span { color: var(--accent); font-style: italic; }
+    .nav-links { display: flex; gap: 36px; align-items: center; }
+    .nav-links a { color: var(--text-tertiary); text-decoration: none; font-size: 0.78rem; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; transition: color .2s; }
+    .nav-links a:hover { color: var(--white); }
+    .nav-links .resume-btn { border: 1px solid var(--border); padding: 8px 18px; border-radius: 2px; transition: border-color .2s, color .2s; }
+    .nav-links .resume-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .page { position: relative; z-index: 3; }
+
+    /* Reveal */
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease;  }
+    .reveal.visible { opacity: 1; transform: translateY(0);  }
+    .reveal a, .reveal button { pointer-events: auto; }
+
+    /* Section label */
+    .section-label { font-size: 0.7rem; font-weight: 400; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 28px; display: flex; align-items: center; gap: 12px; }
+    .section-label::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+
+    /* Hero */
+    .case-hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 56px 80px; position: relative; overflow: hidden; }
+    .case-hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.5; pointer-events: none; }
+    .case-hero-bg { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(to bottom, rgba(14,15,14,0.2) 0%, rgba(14,15,14,0.65) 60%, var(--bg) 100%); }
+    .case-hero-content { position: relative; z-index: 2; max-width: 900px; }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-tertiary); text-decoration: none; transition: color .2s; margin-bottom: 48px; cursor: pointer; }
+    .back-link:hover { color: var(--accent); }
+    .back-link::before { content: '←'; font-size: 0.9rem; }
+    .case-eyebrow { font-size: 0.72rem; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 12px; opacity: 0; animation: fadeUp .7s ease .2s forwards; }
+    .case-eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--accent); }
+    .case-title { font-family: 'Playfair Display', serif; font-size: clamp(3rem, 7vw, 6.5rem); font-weight: 700; line-height: 1.0; letter-spacing: -0.02em; margin-bottom: 28px; opacity: 0; animation: fadeUp .7s ease .35s forwards; }
+    .case-title em { font-style: italic; color: var(--accent); }
+    .case-hero-meta { display: flex; gap: 48px; flex-wrap: wrap; opacity: 0; animation: fadeUp .7s ease .55s forwards; }
+    .meta-item { display: flex; flex-direction: column; gap: 4px; }
+    .meta-label { font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); }
+    .meta-value { font-size: 0.85rem; font-weight: 300; color: var(--text-primary); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Overview */
+    .case-overview { padding: 100px 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; border-top: 1px solid var(--border); }
+    .overview-heading { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 3vw, 2.8rem); font-weight: 300; line-height: 1.2; margin-bottom: 24px; }
+    .overview-heading em { font-style: italic; color: var(--accent); }
+    .overview-text { font-size: 1.05rem; font-weight: 300; color: var(--text-primary); line-height: 1.9; }
+    .overview-text + .overview-text { margin-top: 14px; }
+    .overview-stats { display: flex; flex-direction: column; gap: 0; }
+    .stat-row { padding: 20px 0; border-bottom: 1px solid var(--border); }
+    .stat-row:first-child { border-top: 1px solid var(--border); }
+    .stat-label { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 6px; }
+    .stat-value { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 300; color: var(--white); }
+    .stat-sub { font-size: 0.9rem; font-weight: 300; color: var(--text-secondary); margin-top: 4px; line-height: 1.55; }
+
+    /* Full media */
+    .case-media-full { width: 100%; border-top: 1px solid var(--border); }
+    .case-media-full video, .case-media-full img { width: 100%; display: block; max-height: 680px; object-fit: cover; }
+    .media-caption { padding: 16px 56px; font-size: 0.82rem; letter-spacing: 0.08em; color: var(--text-tertiary); border-bottom: 1px solid var(--border); }
+
+    /* Process */
+    .case-process { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .process-intro { max-width: 640px; margin-bottom: 64px; }
+    .process-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .process-intro h2 em { font-style: italic; color: var(--accent); }
+    .process-intro p { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .process-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
+    .process-step { padding: 32px 24px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .process-step:hover { border-color: rgba(122,184,152,0.35); }
+    .step-num { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 700; color: rgba(122,184,152,0.15); line-height: 1; margin-bottom: 16px; }
+    .step-title { font-size: 0.88rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--white); margin-bottom: 10px; }
+    .step-desc { font-size: 0.95rem; font-weight: 300; color: var(--text-secondary); line-height: 1.75; }
+
+    /* Gallery */
+    .case-gallery { padding: 0 56px 100px; }
+    .gallery-header { padding: 80px 0 40px; border-top: 1px solid var(--border); }
+    .gallery-header h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; }
+    .gallery-header h2 em { font-style: italic; color: var(--accent); }
+    .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+    .gallery-item { overflow: hidden; background: var(--bg2); }
+    .gallery-item img { width: 100%; height: 300px; object-fit: cover; display: block; transition: transform .5s ease, opacity .3s; opacity: 0.88; }
+    .gallery-item img:hover { transform: scale(1.03); opacity: 1; }
+    .gallery-item.wide { grid-column: 1 / -1; }
+    .gallery-item.wide img { height: 500px; object-fit: cover; }
+    .gallery-item.tall img { height: 420px; }
+    /* Brochure items smaller */
+    .gallery-item.brochure img { height: 220px; object-fit: contain; background: #1a1c1a; padding: 16px; }
+    /* 3-col grid for brochures */
+    .gallery-grid-three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; margin-top: 2px; }
+    .gallery-grid-three .gallery-item { overflow: hidden; background: #1a1c1a; }
+    .gallery-grid-three .gallery-item img { width: 100%; height: 240px; object-fit: contain; padding: 20px; display: block; transition: transform .5s ease, opacity .3s; opacity: 0.88; }
+    .gallery-grid-three .gallery-item img:hover { transform: scale(1.03); opacity: 1; }
+    /* Showcase subsection */
+    .gallery-sub-label { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); margin: 48px 0 16px; display: flex; align-items: center; gap: 10px; }
+    .gallery-sub-label::before { content: ''; width: 14px; height: 1px; background: var(--text-tertiary); }
+
+    /* Links */
+    .case-links { padding: 100px 56px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .links-heading { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 8px; }
+    .links-heading em { font-style: italic; color: var(--accent); }
+    .links-sub { font-size: 1rem; font-weight: 300; color: var(--text-secondary); line-height: 1.8; margin-bottom: 36px; }
+    .link-list { display: flex; flex-direction: column; }
+        .link-item { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid var(--border); user-select: none; -webkit-user-select: none; transition: padding-left .2s; cursor: pointer !important; pointer-events: auto !important; position: relative; z-index: 5; }
+    .link-item:first-child { border-top: 1px solid var(--border); }
+    .link-item:hover { padding-left: 10px; background: rgba(122,184,152,0.03); }
+    .link-item-left { display: flex; flex-direction: column; gap: 4px; }
+    .link-item-title { font-size: 1.05rem; font-weight: 400; color: var(--white); transition: color .2s; }
+    .link-item:hover .link-item-title { color: var(--accent); }
+    .link-item-desc { font-size: 0.85rem; font-weight: 300; color: var(--text-tertiary); }
+    .link-arrow { color: var(--accent); opacity: 0; transition: opacity .2s, transform .2s; }
+    .link-item:hover .link-arrow { opacity: 1; transform: translateX(-4px); }
+    .link-list { display: flex; flex-direction: column; pointer-events: auto !important; }
+    .deliverables { display: flex; flex-direction: column; gap: 12px; margin-top: 56px; }
+    .deliverable-item { padding: 20px 24px; border: 1px solid var(--border); border-radius: 2px; background: var(--bg2); transition: border-color .25s; }
+    .deliverable-item:hover { border-color: rgba(122,184,152,0.3); }
+    .deliverable-label { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 6px; }
+    .deliverable-value { font-size: 0.95rem; font-weight: 300; color: var(--text-primary); line-height: 1.55; }
+
+    /* Architecture & Symbolism */
+    .case-arch { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .arch-intro { max-width: 640px; margin-bottom: 56px; }
+    .arch-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .arch-intro h2 em { font-style: italic; color: var(--accent); }
+    .arch-intro p { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .arch-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    .arch-card { padding: 28px 24px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .arch-card:hover { border-color: rgba(122,184,152,0.35); }
+    .arch-shape { font-size: 1.4rem; margin-bottom: 12px; }
+    .arch-building { font-size: 0.82rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+    .arch-form { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 300; color: var(--white); margin-bottom: 10px; }
+    .arch-meaning { font-size: 0.93rem; font-weight: 300; color: var(--text-secondary); line-height: 1.7; }
+    .arch-site-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 40px; font-size: 0.82rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary); text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 4px; transition: color .2s, border-color .2s; }
+    .arch-site-link:hover { color: var(--accent); border-color: var(--accent); }
+
+    @media (max-width: 1280px) { .case-arch { padding: 80px 40px; } }
+    @media (max-width: 900px) { .arch-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px) { .case-arch { padding: 60px 24px; } .arch-grid { grid-template-columns: 1fr; } }
+    /* Next project */
+    .case-next { padding: 80px 56px 100px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-end; }
+    .next-label { font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 12px; }
+    .next-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 300; line-height: 1.1; color: var(--white); text-decoration: none; display: block; transition: color .2s; }
+    .next-title:hover { color: var(--accent); }
+    .next-arrow { font-size: 2rem; color: var(--accent); }
+
+    /* Footer */
+    footer { padding: 24px 56px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    footer span { font-size: 0.7rem; color: var(--text-tertiary); letter-spacing: 0.06em; }
+
+    /* Responsive */
+    @media (max-width: 1280px) {
+      nav#nav { padding: 24px 40px; } .case-hero { padding: 0 40px 64px; }
+      .case-overview { padding: 80px 40px; gap: 48px; } .case-process { padding: 80px 40px; }
+      .case-gallery { padding: 0 40px 80px; } .case-links { padding: 80px 40px; gap: 48px; }
+      .case-next { padding: 80px 40px; } .media-caption { padding: 16px 40px; } footer { padding: 24px 40px; }
+    }
+    @media (max-width: 900px) {
+      .case-overview { grid-template-columns: 1fr; gap: 40px; }
+      .case-links { grid-template-columns: 1fr; gap: 40px; }
+      .process-steps { grid-template-columns: 1fr 1fr; }
+      .gallery-grid { grid-template-columns: 1fr; }
+      .gallery-grid-three { grid-template-columns: 1fr; }
+      .gallery-item.wide { grid-column: 1; }
+      .gallery-item img, .gallery-item.wide img { height: 280px; }
+      .deliverables { margin-top: 0; }
+    }
+    @media (max-width: 640px) {
+      .cursor, .cursor-ring { display: none; } body { cursor: auto; }
+      nav#nav { padding: 20px 24px; } .nav-links { gap: 20px; }
+      .case-hero { padding: 0 24px 48px; } .case-hero-meta { gap: 24px; }
+      .case-overview { padding: 60px 24px; } .case-process { padding: 60px 24px; }
+      .process-steps { grid-template-columns: 1fr; }
+      .case-gallery { padding: 0 24px 60px; } .gallery-header { padding: 60px 0 32px; }
+      .case-links { padding: 60px 24px; } .case-next { padding: 60px 24px 80px; flex-direction: column; align-items: flex-start; gap: 16px; }
+      .media-caption { padding: 12px 24px; } footer { padding: 20px 24px; flex-direction: column; gap: 8px; text-align: center; }
+    }
+  
+    /* ── Cursor Fix: body uses auto so browser hit-testing works fully.
+       Custom JS cursor still renders on top. Only suppress native cursor
+       on non-interactive surface elements. ── */
+    .page, .case-hero, .case-overview, .case-process,
+    .case-gallery, .case-links, .case-next, footer,
+    .case-values, .case-mark, .case-colors, .case-type,
+    .case-research, .case-features, .case-solutions,
+    .case-prototype, .case-decisions, .case-problem,
+    .case-arch { cursor: none; }
+    a, button, [role="button"], div.link-item,
+    .process-step, .feature-card, .value-card,
+    .insight-item, .decision-item, .research-card,
+    .deliverable-item, .arch-card, .swatch,
+    .nav-links a, .nav-logo, .back-link,
+    .next-title, .section-nav-item, .pdf-open-btn,
+    .pdf-btn, .pdf-close, .arch-site-link { cursor: pointer !important; pointer-events: auto !important; }
+    iframe { cursor: auto !important; pointer-events: auto !important; }
+    @media (max-width: 640px) { .cursor, .cursor-ring { display: none; } body { cursor: auto !important; } }
+
+    /* ── Case Study Depth Sections ── */
+    .case-study-section { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .cs-intro { max-width: 640px; margin-bottom: 56px; }
+    .cs-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem,2.5vw,2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .cs-intro h2 em { font-style: italic; color: var(--accent); }
+    .cs-intro p { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .cs-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+    .cs-body { font-size: 1.05rem; font-weight: 300; color: var(--text-primary); line-height: 1.9; }
+    .cs-body + .cs-body { margin-top: 14px; }
+    .cs-callout { padding: 28px 32px; border-left: 3px solid var(--accent); background: var(--bg2); margin-top: 32px; border-radius: 0 2px 2px 0; }
+    .cs-callout p { font-size: 1rem; font-weight: 300; color: var(--text-primary); line-height: 1.8; }
+    .cs-callout strong { color: var(--accent); font-weight: 500; }
+    .cs-findings { display: flex; flex-direction: column; gap: 2px; }
+    .cs-finding { padding: 22px 24px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .cs-finding:hover { border-color: rgba(122,184,152,0.35); }
+    .cs-finding-label { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+    .cs-finding-text { font-size: 0.95rem; font-weight: 300; color: var(--text-primary); line-height: 1.65; }
+    .cs-rec-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+    .cs-rec { padding: 28px 24px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .cs-rec:hover { border-color: rgba(122,184,152,0.35); }
+    .cs-rec-num { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 700; color: rgba(122,184,152,0.15); line-height: 1; margin-bottom: 12px; }
+    .cs-rec-title { font-size: 0.85rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--white); margin-bottom: 8px; }
+    .cs-rec-text { font-size: 0.93rem; font-weight: 300; color: var(--text-secondary); line-height: 1.65; }
+    @media (max-width: 1280px) { .case-study-section { padding: 80px 40px; } }
+    @media (max-width: 900px) { .cs-two-col { grid-template-columns: 1fr; gap: 40px; } .cs-rec-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px) { .case-study-section { padding: 60px 24px; } .cs-rec-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<div class="page">
+
+  <!-- Sticky Section Nav -->
+  <nav class="section-nav" id="sectionNav">
+    <a href="#section-overview" class="section-nav-item" data-section="section-overview">
+      <span class="snav-label">Overview</span><span class="snav-dot"></span>
+    </a>
+    <a href="#section-process" class="section-nav-item" data-section="section-process">
+      <span class="snav-label">Process</span><span class="snav-dot"></span>
+    </a>
+    <a href="#section-visuals" class="section-nav-item" data-section="section-visuals">
+      <span class="snav-label">Visuals</span><span class="snav-dot"></span>
+    </a>
+    <a href="#section-arch" class="section-nav-item" data-section="section-arch">
+      <span class="snav-label">Architecture</span><span class="snav-dot"></span>
+    </a>
+    <a href="#section-explore" class="section-nav-item" data-section="section-explore">
+      <span class="snav-label">Explore</span><span class="snav-dot"></span>
+    </a>
+  </nav>
+
+  <nav id="nav">
+    <a href="index.html" class="nav-logo">Erica <span>Wang</span></a>
+    <div class="nav-links">
+      <a href="index.html#work" >Work</a>
+      <a href="index.html#about">About</a>
+      <a href="pdf/1775328890690_Erica_Wang_Resume.pdf" target="_blank" class="resume-btn">Resume ↗</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="case-hero">
+    <video class="case-hero-video" autoplay muted playsinline loop>
+      <source src="videos/CityofTomorrowFinal.mp4" type="video/mp4">
+    </video>
+    <div class="case-hero-bg"></div>
+    <div class="case-hero-content">
+      <a href="NomNom.html" class="back-link" onclick="window.location.href='NomNom.html';return false;">NomNom Brand</a>
+      <div class="case-eyebrow">NYU Tandon — Capstone Project, Spring 2025</div>
+      <h1 class="case-title">City of <em>Tomorrow</em></h1>
+      <div class="case-hero-meta">
+        <div class="meta-item">
+          <span class="meta-label">Role</span>
+          <span class="meta-value">Solo Designer & 3D Artist</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Tools</span>
+          <span class="meta-value">Maya · Arnold · Premiere Pro</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Duration</span>
+          <span class="meta-value">15 Weeks</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Type</span>
+          <span class="meta-value">3D Modeling & World-Building</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Overview -->
+  <section class="case-overview" id="section-overview">
+    <div class="reveal">
+      <div class="section-label">Overview</div>
+      <h2 class="overview-heading">A city imagined<br><em>125 years</em> from now</h2>
+      <p class="overview-text">City of Tomorrow is set 125 years in the future on Earth. After decades of severe pollution and environmental degradation, the brightest minds came together to engineer a sustainable city in the sky — free from the toxic conditions on the ground.</p>
+      <p class="overview-text">But sustainability alone wasn't enough. Early in the city's history, the lack of entertainment and leisure led to social unrest. The founders realized a balanced life — with time for community, culture, and joy — was as essential as clean air. This gave rise to the Cultural District, and every building's playful form became a symbolic commitment to that balance.</p>
+      <p class="overview-text">As my NYU Tandon capstone, I built this world over 15 weeks — from narrative and concept through 3D modeling in Maya, texturing, Arnold rendering, and a live showcase exhibition.</p>
+    </div>
+    <div class="reveal">
+      <div class="overview-stats">
+        <div class="stat-row">
+          <div class="stat-label">Concept</div>
+          <div class="stat-value">A City Built in the Sky</div>
+          <div class="stat-sub">Set 125 years in the future — humanity's refuge after decades of environmental collapse on the ground</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Scale</div>
+          <div class="stat-value">Full Urban Environment</div>
+          <div class="stat-sub">Multiple districts, 20+ unique buildings, river, trees & infrastructure</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Deliverables</div>
+          <div class="stat-value">4 Final Outputs</div>
+          <div class="stat-sub">Fly-through video · Interactive 3D model · Printed brochure · Live exhibit</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Presented At</div>
+          <div class="stat-value">NYU Tandon Senior Showcase</div>
+          <div class="stat-sub">Live exhibit — physical corner display with brochures and interactive 3D model</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Full-width video -->
+  <div class="case-media-full reveal">
+    <video autoplay muted playsinline loop>
+      <source src="videos/CityofTomorrowFinal.mp4" type="video/mp4">
+    </video>
+    <div class="media-caption">Final rendered city fly-through — Maya Arnold, compiled in Premiere Pro</div>
+  </div>
+
+  <!-- Process -->
+  <section class="case-process" id="section-process">
+    <div class="process-intro reveal">
+      <div class="section-label">Process</div>
+      <h2>Concept sketch to<br><em>rendered world</em></h2>
+      <p>The project followed a structured 15-week arc — from world-building and narrative to modeling, material refinement, rendering, and a physical showcase presentation. Each week was documented on the project blog.</p>
+    </div>
+    <div class="process-steps">
+      <div class="process-step reveal">
+        <div class="step-num">01</div>
+        <div class="step-title">Concept & Narrative</div>
+        <div class="step-desc">Established the world's backstory — "The Great Shift" — and defined the city's values: sustainability, modular pod living, and playful architecture where buildings take shapes of everyday objects.</div>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">02</div>
+        <div class="step-title">3D Modeling in Maya</div>
+        <div class="step-desc">Each building was designed around a symbolic everyday object — a dumbbell, a lipstick, a book, a wine glass — chosen to reflect the district's purpose. See the full architecture meanings below.</div>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">03</div>
+        <div class="step-title">Materials & Environment</div>
+        <div class="step-desc">Applied sustainable glass, tile, and recycled material nodes throughout. Added a winding river, cherry blossom trees, and green corridors. Refined lighting and scale across all districts.</div>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">04</div>
+        <div class="step-title">Render & Exhibition</div>
+        <div class="step-desc">Rendered all camera frames in Maya Arnold and compiled the fly-through in Premiere Pro. Uploaded to Sketchfab for interactive 3D viewing. Designed a printed brochure for the live NYU exhibit.</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Executive Summary -->
+  <section class="case-study-section reveal" id="section-summary">
+    <div class="cs-intro">
+      <div class="section-label">Executive Summary</div>
+      <h2>The project in <em>brief</em></h2>
+    </div>
+    <div class="cs-two-col">
+      <div>
+        <p class="cs-body">City of Tomorrow is a speculative 3D world-building project that imagines urban life 125 years from now — after an environmental collapse drove humanity to build a sustainable city in the sky. The project was created as a NYU Tandon capstone over 15 weeks, combining narrative design, 3D modeling in Maya, Arnold rendering, and a live showcase exhibition.</p>
+        <p class="cs-body">The central design question was: <em>if architecture could encode a civilization's values, what would a post-crisis city look like?</em> The answer became a city where every building is shaped like an everyday object — each one a monument to a different aspect of human life that was nearly lost.</p>
+        <div class="cs-callout">
+          <p><strong>Core Thesis:</strong> Sustainable cities of the future don't have to be sterile or utilitarian. By embedding cultural meaning into architecture itself, a city can be both technically innovative and deeply human.</p>
+        </div>
+      </div>
+      <div class="cs-findings">
+        <div class="cs-finding">
+          <div class="cs-finding-label">The Challenge</div>
+          <div class="cs-finding-text">How do you design a believable future city that addresses real environmental concerns while remaining visually compelling and narratively rich?</div>
+        </div>
+        <div class="cs-finding">
+          <div class="cs-finding-label">The Approach</div>
+          <div class="cs-finding-text">Ground the world in a specific historical event ("The Great Shift"), then let every design decision flow from that narrative — materials, architecture, urban layout, even the brochure copy.</div>
+        </div>
+        <div class="cs-finding">
+          <div class="cs-finding-label">The Outcome</div>
+          <div class="cs-finding-text">A fully realized 3D environment presented at NYU's Senior Showcase — with a fly-through video, interactive Sketchfab model, and printed brochure that together tell the complete story of the city.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Findings & Evaluation -->
+  <section class="case-study-section reveal" id="section-findings">
+    <div class="cs-intro">
+      <div class="section-label">Design Evaluation</div>
+      <h2>What worked, what <em>didn't</em></h2>
+      <p>Evaluated against the original project goals: narrative clarity, visual coherence, technical execution, and real-world presentation impact.</p>
+    </div>
+    <div class="cs-rec-grid">
+      <div class="cs-rec">
+        <div class="cs-rec-num">↑</div>
+        <div class="cs-rec-title">Narrative Strength</div>
+        <div class="cs-rec-text">The "Great Shift" backstory gave every design decision a reason to exist. Reviewers at the showcase responded strongly to the world-building — the city felt like it had a real history.</div>
+      </div>
+      <div class="cs-rec">
+        <div class="cs-rec-num">↑</div>
+        <div class="cs-rec-title">Symbolic Architecture</div>
+        <div class="cs-rec-text">Using everyday objects as building forms (bread loaf, dumbbell, wine glass) made the city immediately readable. Each shape communicates its district's purpose at a glance — no legend needed.</div>
+      </div>
+      <div class="cs-rec">
+        <div class="cs-rec-num">↑</div>
+        <div class="cs-rec-title">Multi-Format Delivery</div>
+        <div class="cs-rec-text">Delivering the project as a video, interactive 3D model, and printed brochure meant different audiences could engage at different depths — from a 30-second overview to a full interactive exploration.</div>
+      </div>
+      <div class="cs-rec">
+        <div class="cs-rec-num">→</div>
+        <div class="cs-rec-title">Material Realism</div>
+        <div class="cs-rec-text">The sustainable glass and recycled material nodes read well in renders, but some buildings could benefit from more texture variety to avoid looking uniformly clean — real cities have wear and patina.</div>
+      </div>
+      <div class="cs-rec">
+        <div class="cs-rec-num">→</div>
+        <div class="cs-rec-title">Population & Scale</div>
+        <div class="cs-rec-text">The city reads as a model rather than a lived-in environment. Future iterations could add human-scale elements — street furniture, vehicles, pedestrian pathways — to ground the scale.</div>
+      </div>
+      <div class="cs-rec">
+        <div class="cs-rec-num">→</div>
+        <div class="cs-rec-title">Interior Spaces</div>
+        <div class="cs-rec-text">All buildings are exterior-only. The pod housing model shown separately hints at rich interior possibilities — exploring interiors would deepen the world-building significantly.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recommendations -->
+  <section class="case-study-section reveal" id="section-recommendations">
+    <div class="cs-intro">
+      <div class="section-label">Recommendations</div>
+      <h2>If I built it <em>again</em></h2>
+      <p>Three things I would do differently or take further in a next iteration of City of Tomorrow.</p>
+    </div>
+    <div class="cs-two-col">
+      <div class="cs-findings">
+        <div class="cs-finding">
+          <div class="cs-finding-label">Recommendation 01 — Real-Time Render</div>
+          <div class="cs-finding-text">Move the city into a real-time engine like Unreal Engine 5 to enable fully interactive walkthroughs rather than a pre-rendered video. Visitors could explore at their own pace rather than following a fixed camera path.</div>
+        </div>
+        <div class="cs-finding">
+          <div class="cs-finding-label">Recommendation 02 — Inhabited Details</div>
+          <div class="cs-finding-text">Add human-scale elements — crowds, vehicles, dynamic lighting cycles (day/night) — to make the city feel populated and alive rather than a pristine architectural model.</div>
+        </div>
+        <div class="cs-finding">
+          <div class="cs-finding-label">Recommendation 03 — Extended Narrative</div>
+          <div class="cs-finding-text">Develop a longer-form narrative companion piece — a fictional city guide or documentary — that uses the brochure's established voice to give every district and building a fuller story and cultural context.</div>
+        </div>
+      </div>
+      <div>
+        <p class="cs-body">City of Tomorrow started as a technical project — build a 3D model — and became a world-building exercise. The strongest learning was that the narrative came first: once "The Great Shift" existed as a premise, every modeling decision had a reason behind it.</p>
+        <p class="cs-body">The most visited stop at the NYU showcase was the architectural symbolism section of the brochure — people wanted to know what each building meant. That feedback confirmed the thesis: meaning embedded in form is more memorable than form alone.</p>
+        <div class="cs-callout">
+          <p><strong>Key Takeaway:</strong> World-building is a design discipline. The strongest environments — in games, film, architecture — are ones where form and meaning are inseparable. That's what City of Tomorrow was trying to prove.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery -->
+  <section class="case-gallery" id="section-visuals">
+    <div class="gallery-header reveal">
+      <div class="section-label">Visuals</div>
+      <h2>The city, up <em>close</em></h2>
+    </div>
+
+    <!-- Hero render: dark sky full city -->
+    <div class="gallery-grid">
+      <div class="gallery-item wide reveal">
+        <img src="images/COT_DarkSky.png" alt="City of Tomorrow — dramatic dark sky render with all buildings illuminated" style="object-fit:cover;object-position:center 30%;" />
+      </div>
+    </div>
+
+    <!-- Two POV renders -->
+    <div class="gallery-grid" style="margin-top:2px;">
+      <div class="gallery-item tall reveal">
+        <img src="images/COT_TopLeftPOV.png" alt="City of Tomorrow — top-left perspective with pastel buildings" />
+      </div>
+      <div class="gallery-item tall reveal">
+        <img src="images/COT_MuseumCloseup.png" alt="City of Tomorrow — museum puzzle piece building closeup with trees and courtyard" />
+      </div>
+    </div>
+
+    <!-- Process: Draft models showing early stages -->
+    <div class="gallery-sub-label reveal">Early Drafts — Model Progression</div>
+    <div class="gallery-grid-three" style="margin-top:0;">
+      <div class="gallery-item reveal">
+        <img src="images/COT_FrontPOV_Notdetailed.png" alt="City of Tomorrow early draft — front view before full texturing" style="object-fit:cover;" />
+      </div>
+      <div class="gallery-item reveal">
+        <img src="images/COTDraft4_1.png" alt="City of Tomorrow draft 4 — angled view showing model structure" style="object-fit:cover;" />
+      </div>
+      <div class="gallery-item reveal">
+        <img src="images/COTDraft4_2.png" alt="City of Tomorrow draft 4 — front view wireframe model stage" style="object-fit:cover;" />
+      </div>
+    </div>
+
+    <!-- The 2D color overview -->
+    <div class="gallery-grid" style="margin-top:2px;">
+      <div class="gallery-item wide reveal">
+        <img src="images/COT_Model_notdetailed.png" alt="City of Tomorrow — 2D flat color overview showing all building shapes and districts" style="height:420px;object-fit:cover;object-position:center;" />
+      </div>
+    </div>
+
+    <!-- Brochures side by side -->
+    <div class="gallery-sub-label reveal">Brochure Design</div>
+    <div class="gallery-grid-three" style="margin-top:0;">
+      <div class="gallery-item brochure">
+        <img src="images/COTBrochureFront.png" alt="City of Tomorrow brochure front" />
+      </div>
+      <div class="gallery-item brochure">
+        <img src="images/COTBrochureInside.png" alt="City of Tomorrow brochure inside spread" />
+      </div>
+      <div class="gallery-item brochure">
+        <img src="images/COTBrochureOverview.png" alt="City of Tomorrow brochure overview" />
+      </div>
+    </div>
+
+    <!-- Showcase photos -->
+    <div class="gallery-sub-label reveal">Live Showcase Display</div>
+    <div class="gallery-grid">
+      <div class="gallery-item reveal">
+        <img src="images/COTDisplayTV.JPG" alt="City of Tomorrow — TV display at exhibit" />
+      </div>
+      <div class="gallery-item reveal">
+        <img src="images/COTBrochureTable.JPG" alt="City of Tomorrow — brochure table at exhibit" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture & Symbolism -->
+  <section class="case-arch" id="section-arch">
+    <div class="arch-intro reveal">
+      <div class="section-label">Architecture & Symbolism</div>
+      <h2>Every building has a<br><em>meaning</em></h2>
+      <p>The city's founders made every structure a symbol — a reminder of the values the city was built on and the balance between survival and joy. Each building in the Cultural District takes the shape of an everyday object chosen to reflect its purpose.</p>
+    </div>
+    <div class="arch-grid">
+      <div class="arch-card reveal">
+        <div class="arch-shape">🍞</div>
+        <div class="arch-building">Food Building</div>
+        <div class="arch-form">Bread Loaf</div>
+        <div class="arch-meaning">Represents sustenance, community, and tradition — symbolizing the importance of nourishment and fostering togetherness.</div>
+      </div>
+      <div class="arch-card reveal">
+        <div class="arch-shape">💄</div>
+        <div class="arch-building">Shopping Mall</div>
+        <div class="arch-form">Lipstick</div>
+        <div class="arch-meaning">Represents beauty and self-expression — a commitment to providing space where people can enjoy life freely despite their challenges.</div>
+      </div>
+      <div class="arch-card reveal">
+        <div class="arch-shape">🧺</div>
+        <div class="arch-building">Supermarket</div>
+        <div class="arch-form">Shopping Basket</div>
+        <div class="arch-meaning">Represents abundance and variety — the city's commitment to providing ample and diverse food supplies for all residents.</div>
+      </div>
+      <div class="arch-card reveal">
+        <div class="arch-shape">🍿</div>
+        <div class="arch-building">Movie Theater</div>
+        <div class="arch-form">Popcorn Box</div>
+        <div class="arch-meaning">Represents fun, entertainment, and the joy of film — highlighting the importance of a lively, engaging atmosphere for citizens.</div>
+      </div>
+      <div class="arch-card reveal">
+        <div class="arch-shape">🍷</div>
+        <div class="arch-building">Bar</div>
+        <div class="arch-form">Wine Glass</div>
+        <div class="arch-meaning">Represents celebration, relaxation, and social connection — a reminder to unwind and enjoy life together as a community.</div>
+      </div>
+      <div class="arch-card reveal">
+        <div class="arch-shape">☕</div>
+        <div class="arch-building">Café</div>
+        <div class="arch-form">Mug</div>
+        <div class="arch-meaning">Represents warmth, comfort, and community — the simple ritual of a hot beverage and a conversation with a neighbor.</div>
+      </div>
+      <div class="arch-card reveal">
+        <div class="arch-shape">📖</div>
+        <div class="arch-building">Library</div>
+        <div class="arch-form">Open Book</div>
+        <div class="arch-meaning">Signifies knowledge and information sharing — the belief that education is key to solving the world's problems.</div>
+      </div>
+      <div class="arch-card reveal">
+        <div class="arch-shape">🏋️</div>
+        <div class="arch-building">Sports Center</div>
+        <div class="arch-form">Dumbbell</div>
+        <div class="arch-meaning">Symbolizes strength and physical well-being — encouraging an active, healthy lifestyle for all residents.</div>
+      </div>
+      <div class="arch-card reveal">
+        <div class="arch-shape">🧩</div>
+        <div class="arch-building">Museum</div>
+        <div class="arch-form">Puzzle Piece</div>
+        <div class="arch-meaning">Represents piecing together history and culture — preserving the heritage and achievements of the city's inhabitants.</div>
+      </div>
+    </div>
+    <a href="https://sites.google.com/view/cityoftomorrow/design" target="_blank" class="arch-site-link reveal">See full design meanings on the project site ↗</a>
+  </section>
+
+  <!-- Links & Deliverables -->
+  <section class="case-links" id="section-explore">
+    <div style="opacity:1;transform:none;">
+      <div class="section-label">Explore</div>
+      <h2 class="links-heading">See the full<br><em>project</em></h2>
+      <p class="links-sub">The city lives across multiple formats — an interactive 3D model, a rendered fly-through, a 15-week process blog, and a dedicated project site with the full architectural symbolism guide.</p>
+      <div class="link-list" style="pointer-events:auto!important;position:relative;z-index:10;">
+        <div role="button" tabindex="0" class="link-item" onclick="window.open('https://sketchfab.com/3d-models/city-of-tomorrow-857fac9104c543ed8cc5b5500cc995d7', '_blank')" onkeydown="if(event.key==='Enter')window.open('https://sketchfab.com/3d-models/city-of-tomorrow-857fac9104c543ed8cc5b5500cc995d7', '_blank')">
+          <div class="link-item-left">
+            <span class="link-item-title">Interactive 3D Model</span>
+            <span class="link-item-desc">Sketchfab — orbit and explore the full city in your browser</span>
+          </div>
+          <span class="link-arrow">↗</span>
+        </div>
+        <div role="button" tabindex="0" class="link-item" onclick="window.open('https://youtu.be/ehhhCtl89qc', '_blank')" onkeydown="if(event.key==='Enter')window.open('https://youtu.be/ehhhCtl89qc', '_blank')">
+          <div class="link-item-left">
+            <span class="link-item-title">Fly-Through Video</span>
+            <span class="link-item-desc">YouTube — full rendered city walk-through</span>
+          </div>
+          <span class="link-arrow">↗</span>
+        </div>
+        <div role="button" tabindex="0" class="link-item" onclick="window.open('https://sites.google.com/view/cityoftomorrow/home', '_blank')" onkeydown="if(event.key==='Enter')window.open('https://sites.google.com/view/cityoftomorrow/home', '_blank')">
+          <div class="link-item-left">
+            <span class="link-item-title">Project Website</span>
+            <span class="link-item-desc">Google Sites — city lore, architectural meanings, and district breakdown</span>
+          </div>
+          <span class="link-arrow">↗</span>
+        </div>
+      </div>
+    </div>
+    <div style="opacity:1;transform:none;">
+      <div class="section-label">Deliverables</div>
+      <div class="deliverables">
+        <div class="deliverable-item">
+          <div class="deliverable-label">3D Environment</div>
+          <div class="deliverable-value">Full city built in Maya — uploaded to Sketchfab for interactive browser exploration</div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-label">Rendered Video</div>
+          <div class="deliverable-value">Frame-by-frame Maya Arnold render compiled into a city fly-through in Premiere Pro</div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-label">Printed Brochure</div>
+          <div class="deliverable-value">Tri-fold brochure covering city lore, pod housing, and architectural vision — distributed at the NYU exhibit</div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-label">Live Exhibition</div>
+          <div class="deliverable-value">Physical corner display at the NYU Tandon Senior Showcase — with printed brochures and interactive demo</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Next project -->
+  <section class="case-next reveal">
+    <div>
+      <div class="next-label">Next Project</div>
+      <a href="Wanderscape.html" class="next-title">Wander<em style="font-style:italic;color:var(--accent)">Scape</em></a>
+    </div>
+    <span class="next-arrow">→</span>
+  </section>
+
+  <footer>
+    <span>© 2025 Erica Wang</span>
+    <span>UI/UX Designer & Frontend Developer — New York</span>
+  </footer>
+
+</div>
+
+<script>
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  });
+  (function animRing() {
+    rx += (mx - rx) * 0.35; ry += (my - ry) * 0.35;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  })();
+  document.querySelectorAll('a, .process-step, .deliverable-item, .link-item').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.classList.add('big'); ring.classList.add('big'); });
+    el.addEventListener('mouseleave', () => { cursor.classList.remove('big'); ring.classList.remove('big'); });
+  });
+
+  const navEl = document.getElementById('nav');
+  let lastScrollY = 0;
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY;
+    navEl.classList.toggle('scrolled', scrollY > 40);
+    if (scrollY > lastScrollY && scrollY > 80) navEl.classList.add('hidden');
+    else navEl.classList.remove('hidden');
+    lastScrollY = scrollY;
+  });
+
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // ── Section Nav highlight ──
+  const snavItems = document.querySelectorAll('.section-nav-item');
+  const sections = ['section-overview','section-process','section-summary','section-findings','section-recommendations','section-visuals','section-arch','section-explore']
+    .map(id => document.getElementById(id)).filter(Boolean);
+
+  const snavObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        snavItems.forEach(item => item.classList.remove('active'));
+        const active = document.querySelector(`.section-nav-item[data-section="${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => snavObserver.observe(s));
+
+  // Smooth scroll for section nav
+  document.querySelectorAll('.section-nav-item').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+
+</body>
+</html>

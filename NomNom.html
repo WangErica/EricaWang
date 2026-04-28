@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NomNom Brand Identity — Erica Wang</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0e0f0e; --bg2: #141614; --white: #f2f4f1;
+      --text-primary: rgba(242,244,241,0.88); --text-secondary: rgba(242,244,241,0.65);
+      --text-tertiary: rgba(242,244,241,0.38);
+      --accent: #7ab898; --accent-dim: rgba(122,184,152,0.15); --border: rgba(242,244,241,0.1);
+    }
+    html, body { width: 100%; background: var(--bg); color: var(--white); font-family: 'Outfit', sans-serif; overflow-x: hidden; cursor: auto; }
+
+    .cursor { position: fixed; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); transition: width .18s,height .18s; box-shadow: 0 0 8px rgba(122,184,152,0.8); }
+    .cursor-ring { position: fixed; width: 38px; height: 38px; border: 1.5px solid var(--accent); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); opacity: 0.6; transition: opacity .2s; }
+    .cursor.big { width: 18px; height: 18px; }
+    .cursor-ring.big { opacity: 0.25; }
+
+    body::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 2; opacity: 0.02; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 180px; }
+
+    /* Section Nav */
+    .section-nav { position: fixed; right: 33px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 16px; z-index: 90; align-items: flex-end; pointer-events: none; }
+    .section-nav-item { display: flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; color: var(--text-tertiary); transition: color .25s; pointer-events: auto; }
+    .section-nav-item:hover, .section-nav-item.active { color: var(--accent); }
+    .section-nav-item.active .snav-dot { background: var(--accent); box-shadow: 0 0 6px rgba(122,184,152,0.6); transform: scale(1.4); }
+    .snav-label { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.45; transition: opacity .2s; white-space: nowrap; }
+    .section-nav-item:hover .snav-label, .section-nav-item.active .snav-label { opacity: 1; }
+    .snav-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--text-tertiary); flex-shrink: 0; transition: background .25s, box-shadow .25s, transform .25s; }
+    @media (max-width: 900px) { .section-nav { display: none; } }
+
+    /* Nav */
+    nav#nav { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 28px 56px; z-index: 100; transition: background .3s, border-color .3s, transform .4s ease, opacity .4s ease; }
+    nav#nav.scrolled { background: rgba(14,15,14,0.85); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); }
+    nav#nav.hidden { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 300; letter-spacing: 0.04em; color: var(--white); text-decoration: none; }
+    .nav-logo span { color: var(--accent); font-style: italic; }
+    .nav-links { display: flex; gap: 36px; align-items: center; }
+    .nav-links a { color: var(--text-tertiary); text-decoration: none; font-size: 0.78rem; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; transition: color .2s; }
+    .nav-links a:hover { color: var(--white); }
+    .nav-links .resume-btn { border: 1px solid var(--border); padding: 8px 18px; border-radius: 2px; transition: border-color .2s, color .2s; }
+    .nav-links .resume-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .page { position: relative; z-index: 3; }
+
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease;  }
+    .reveal.visible { opacity: 1; transform: translateY(0);  }
+
+    .section-label { font-size: 0.7rem; font-weight: 400; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 28px; display: flex; align-items: center; gap: 12px; }
+    .section-label::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Hero */
+    .case-hero {
+      min-height: 100vh; display: flex; flex-direction: column;
+      justify-content: flex-end; padding: 0 56px 80px;
+      position: relative; overflow: hidden; background: var(--bg);
+    }
+    .case-hero::before {
+      content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(ellipse 80% 70% at 60% 40%, rgba(249,115,22,0.1) 0%, transparent 55%),
+                  radial-gradient(ellipse 50% 50% at 25% 65%, rgba(255,191,46,0.08) 0%, transparent 55%),
+                  radial-gradient(ellipse 60% 60% at 80% 70%, rgba(186,173,255,0.07) 0%, transparent 50%);
+    }
+    .case-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; opacity: 0.12; pointer-events: none; }
+    .case-hero-content { position: relative; z-index: 2; max-width: 900px; }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; pointer-events: auto !important; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-tertiary); text-decoration: none; transition: color .2s; margin-bottom: 48px; position: relative; z-index: 3; cursor: pointer; }
+    .back-link:hover { color: var(--accent); }
+    .back-link::before { content: '←'; font-size: 0.9rem; }
+    .case-eyebrow { font-size: 0.72rem; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 12px; opacity: 0; animation: fadeUp .7s ease .2s forwards; }
+    .case-eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--accent); }
+    .case-title { font-family: 'Playfair Display', serif; font-size: clamp(3rem, 7vw, 6.5rem); font-weight: 700; line-height: 1.0; letter-spacing: -0.02em; margin-bottom: 28px; opacity: 0; animation: fadeUp .7s ease .35s forwards; }
+    .case-title em { font-style: italic; color: var(--accent); }
+    .case-hero-meta { display: flex; gap: 48px; flex-wrap: wrap; opacity: 0; animation: fadeUp .7s ease .55s forwards; }
+    .meta-item { display: flex; flex-direction: column; gap: 4px; }
+    .meta-label { font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); }
+    .meta-value { font-size: 0.85rem; font-weight: 300; color: var(--text-primary); }
+
+    /* Overview */
+    .case-overview { padding: 100px 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; border-top: 1px solid var(--border); }
+    .overview-heading { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 3vw, 2.8rem); font-weight: 300; line-height: 1.2; margin-bottom: 24px; }
+    .overview-heading em { font-style: italic; color: var(--accent); }
+    .overview-text { font-size: 1rem; font-weight: 300; color: var(--text-primary); line-height: 1.85; }
+    .overview-text + .overview-text { margin-top: 14px; }
+    .overview-stats { display: flex; flex-direction: column; }
+    .stat-row { padding: 20px 0; border-bottom: 1px solid var(--border); }
+    .stat-row:first-child { border-top: 1px solid var(--border); }
+    .stat-label { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 6px; }
+    .stat-value { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 300; color: var(--white); }
+    .stat-sub { font-size: 0.85rem; font-weight: 300; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+
+    /* Brand Values */
+    .case-values { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .values-intro { max-width: 600px; margin-bottom: 56px; }
+    .values-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .values-intro h2 em { font-style: italic; color: var(--accent); }
+    .values-intro p { font-size: 1rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .values-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
+    .value-card { padding: 36px 28px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .value-card:hover { border-color: rgba(122,184,152,0.35); }
+    .value-icon { font-size: 1.6rem; margin-bottom: 20px; }
+    .value-name { font-size: 0.85rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--white); margin-bottom: 12px; }
+    .value-desc { font-size: 0.9rem; font-weight: 300; color: var(--text-secondary); line-height: 1.7; }
+
+    /* Graphic mark */
+    .case-mark { padding: 100px 56px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .mark-text h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 16px; }
+    .mark-text h2 em { font-style: italic; color: var(--accent); }
+    .mark-text p { font-size: 1rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .mark-text p + p { margin-top: 14px; }
+    .mark-variants { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    .mark-variant { background: #0a0a0a; overflow: hidden; display: flex; flex-direction: column; }
+    .mark-variant img { width: 100%; height: 200px; object-fit: contain; padding: 24px; display: block; transition: transform .4s ease; }
+    .mark-variant:hover img { transform: scale(1.05); }
+    .mark-variant-label { font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary); padding: 10px 14px; border-top: 1px solid var(--border); }
+
+    /* Process */
+    .case-process { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .process-intro { max-width: 640px; margin-bottom: 64px; }
+    .process-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .process-intro h2 em { font-style: italic; color: var(--accent); }
+    .process-intro p { font-size: 1rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .process-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
+    .process-step { padding: 32px 24px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .process-step:hover { border-color: rgba(122,184,152,0.35); }
+    .step-num { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 700; color: rgba(122,184,152,0.15); line-height: 1; margin-bottom: 16px; }
+    .step-title { font-size: 0.85rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--white); margin-bottom: 10px; }
+    .step-desc { font-size: 0.9rem; font-weight: 300; color: var(--text-secondary); line-height: 1.7; }
+
+    /* Color Palette */
+    .case-colors { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .colors-intro { max-width: 560px; margin-bottom: 48px; }
+    .colors-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .colors-intro h2 em { font-style: italic; color: var(--accent); }
+    .colors-intro p { font-size: 1rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .color-group-label { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+    .color-group-label::before { content: ''; width: 14px; height: 1px; background: var(--text-tertiary); }
+    .color-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; margin-bottom: 40px; }
+    .color-row.three { grid-template-columns: repeat(3, 1fr); }
+    .color-row.two { grid-template-columns: repeat(2, 1fr); }
+    .swatch { height: 100px; display: flex; flex-direction: column; justify-content: flex-end; padding: 12px 14px; position: relative; overflow: hidden; transition: transform .3s; }
+    .swatch:hover { transform: scaleY(1.04); }
+    .swatch-name { font-size: 0.65rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 2px; }
+    .swatch-hex { font-size: 0.6rem; letter-spacing: 0.06em; opacity: 0.7; font-family: monospace; }
+    .dark-text .swatch-name, .dark-text .swatch-hex { color: rgba(0,0,0,0.7); }
+    .light-text .swatch-name, .light-text .swatch-hex { color: rgba(255,255,255,0.9); }
+
+    /* Gallery */
+    .case-gallery { padding: 0 56px 100px; }
+    .gallery-header { padding: 80px 0 40px; border-top: 1px solid var(--border); }
+    .gallery-header h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; }
+    .gallery-header h2 em { font-style: italic; color: var(--accent); }
+    .gallery-header p { font-size: 0.95rem; font-weight: 300; color: var(--text-secondary); line-height: 1.75; margin-top: 12px; max-width: 560px; }
+    .gallery-sub-label { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); margin: 40px 0 12px; display: flex; align-items: center; gap: 10px; }
+    .gallery-sub-label::before { content: ''; width: 14px; height: 1px; background: var(--text-tertiary); }
+    .mockup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+    .mockup-item { overflow: hidden; background: var(--bg2); }
+    .mockup-item img { width: 100%; height: 420px; object-fit: cover; display: block; transition: transform .5s ease, opacity .3s; opacity: 0.9; }
+    .mockup-item img:hover { transform: scale(1.03); opacity: 1; }
+
+    /* Typography showcase */
+    .case-type { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .type-intro { max-width: 560px; margin-bottom: 48px; }
+    .type-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .type-intro h2 em { font-style: italic; color: var(--accent); }
+    .type-intro p { font-size: 1rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .type-rows { display: flex; flex-direction: column; gap: 0; }
+    .type-row { padding: 28px 0; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 200px 1fr; gap: 32px; align-items: center; }
+    .type-row:first-child { border-top: 1px solid var(--border); }
+    .type-meta { display: flex; flex-direction: column; gap: 4px; }
+    .type-name { font-size: 0.78rem; font-weight: 500; color: var(--white); }
+    .type-usage { font-size: 0.72rem; font-weight: 300; color: var(--text-tertiary); line-height: 1.5; }
+    .type-sample { font-size: 1.6rem; color: var(--white); line-height: 1.1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .type-sample.small { font-size: 1.1rem; }
+
+    /* Links */
+    .case-links { padding: 100px 56px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .links-heading { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 8px; }
+    .links-heading em { font-style: italic; color: var(--accent); }
+    .links-sub { font-size: 0.95rem; font-weight: 300; color: var(--text-secondary); line-height: 1.75; margin-bottom: 36px; }
+    .link-list { display: flex; flex-direction: column; }
+        .link-item { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid var(--border); user-select: none; -webkit-user-select: none; transition: padding-left .2s; cursor: pointer !important; pointer-events: auto !important; position: relative; z-index: 5; }
+    .link-item:first-child { border-top: 1px solid var(--border); }
+    .link-item:hover { padding-left: 10px; background: rgba(122,184,152,0.03); }
+    .link-item-left { display: flex; flex-direction: column; gap: 4px; }
+    .link-item-title { font-size: 1.05rem; font-weight: 400; color: var(--white); transition: color .2s; }
+    .link-item:hover .link-item-title { color: var(--accent); }
+    .link-item-desc { font-size: 0.85rem; font-weight: 300; color: var(--text-tertiary); }
+    .link-arrow { color: var(--accent); opacity: 0; transition: opacity .2s, transform .2s; }
+    .link-item:hover .link-arrow { opacity: 1; transform: translateX(-4px); }
+    .link-list { display: flex; flex-direction: column; pointer-events: auto !important; }
+    .deliverables { display: flex; flex-direction: column; gap: 12px; }
+    .deliverable-item { padding: 20px 24px; border: 1px solid var(--border); border-radius: 2px; background: var(--bg2); transition: border-color .25s; }
+    .deliverable-item:hover { border-color: rgba(122,184,152,0.3); }
+    .deliverable-label { font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 6px; }
+    .deliverable-value { font-size: 0.9rem; font-weight: 300; color: var(--text-primary); line-height: 1.5; }
+
+    /* Brand voice quote */
+    .brand-quote { padding: 32px 36px; border: 1px solid var(--border); background: var(--bg2); border-radius: 2px; border-left: 3px solid var(--accent); margin-top: 2px; }
+    .brand-quote p { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 300; font-style: italic; color: var(--white); line-height: 1.65; margin-bottom: 14px; }
+    .brand-quote span { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-tertiary); }
+
+    /* Next */
+    .case-next { padding: 80px 56px 100px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-end; }
+    .next-label { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 12px; }
+    .next-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 300; line-height: 1.1; color: var(--white); text-decoration: none; display: block; transition: color .2s; }
+    .next-title:hover { color: var(--accent); }
+    .next-arrow { font-size: 2rem; color: var(--accent); }
+
+    footer { padding: 24px 56px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    footer span { font-size: 0.7rem; color: var(--text-tertiary); letter-spacing: 0.06em; }
+
+    /* PDF Viewer Modal */
+    .pdf-modal { display: none; position: fixed; inset: 0; z-index: 500; align-items: center; justify-content: center; background: rgba(0,0,0,0.88); backdrop-filter: blur(8px); }
+    .pdf-modal.open { display: flex; }
+    .pdf-modal-inner { position: relative; width: 95vw; max-width: 1200px; max-height: 95vh; display: flex; flex-direction: column; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+    .pdf-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .pdf-modal-title { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary); }
+    .pdf-modal-controls { display: flex; align-items: center; gap: 16px; }
+    .pdf-page-info { font-size: 0.72rem; color: var(--text-tertiary); letter-spacing: 0.06em; }
+    .pdf-btn { background: none; border: 1px solid var(--border); color: var(--white); padding: 6px 14px; border-radius: 2px; font-size: 0.72rem; letter-spacing: 0.08em; cursor: pointer; transition: border-color .2s, color .2s; font-family: 'Outfit', sans-serif; }
+    .pdf-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .pdf-btn:disabled { opacity: 0.3; cursor: default; }
+    .pdf-close { background: none; border: none; color: var(--text-tertiary); font-size: 1.2rem; cursor: pointer; padding: 4px; line-height: 1; transition: color .2s; }
+    .pdf-close:hover { color: var(--white); }
+    .pdf-frame-wrap { flex: 1; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #1a1c1a; min-height: 0; }
+    .pdf-frame-wrap iframe { width: 100%; height: 100%; border: none; min-height: 80vh; }
+    .pdf-open-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border: 1px solid var(--border); border-radius: 2px; font-size: 0.78rem; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); background: var(--bg2); cursor: pointer; transition: border-color .2s, color .2s; font-family: 'Outfit', sans-serif; margin-top: 16px; }
+    .pdf-open-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Responsive */
+    @media (max-width: 1280px) {
+      nav#nav { padding: 24px 40px; } 
+      .case-hero { padding: 0 40px 64px; }
+      .case-overview, .case-values, .case-process, .case-colors, .case-mark, .case-type { padding: 80px 40px; }
+      .case-gallery { padding: 0 40px 80px; } .case-links { padding: 80px 40px; gap: 48px; }
+      .case-next { padding: 80px 40px; } footer { padding: 24px 40px; }
+    }
+    @media (max-width: 900px) {
+      .case-overview, .case-links, .case-mark { grid-template-columns: 1fr; gap: 40px; }
+      .values-grid, .process-steps { grid-template-columns: 1fr 1fr; }
+      .color-row { grid-template-columns: repeat(3, 1fr); }
+      .color-row.two { grid-template-columns: repeat(2, 1fr); }
+      .mockup-grid { grid-template-columns: 1fr; }
+      .type-row { grid-template-columns: 1fr; gap: 12px; }
+    }
+    @media (max-width: 640px) {
+      .cursor, .cursor-ring { display: none; } body { cursor: auto; }
+      nav#nav { padding: 20px 24px; } .nav-links { gap: 20px; }
+      .case-hero { padding: 0 24px 48px; } .case-hero-meta { gap: 24px; }
+      .case-overview, .case-values, .case-process, .case-colors, .case-mark, .case-type { padding: 60px 24px; }
+      .values-grid, .process-steps { grid-template-columns: 1fr; }
+      .mark-variants { grid-template-columns: 1fr 1fr; }
+      .color-row { grid-template-columns: repeat(2, 1fr); }
+      .case-gallery { padding: 0 24px 60px; } .gallery-header { padding: 60px 0 32px; }
+      .case-links { padding: 60px 24px; grid-template-columns: 1fr; gap: 40px; }
+      .case-next { padding: 60px 24px 80px; flex-direction: column; align-items: flex-start; gap: 16px; }
+      footer { padding: 20px 24px; flex-direction: column; gap: 8px; text-align: center; }
+    }
+  
+    /* ── Cursor Fix: body uses auto so browser hit-testing works fully.
+       Custom JS cursor still renders on top. Only suppress native cursor
+       on non-interactive surface elements. ── */
+    .page, .case-hero, .case-overview, .case-process,
+    .case-gallery, .case-links, .case-next, footer,
+    .case-values, .case-mark, .case-colors, .case-type,
+    .case-research, .case-features, .case-solutions,
+    .case-prototype, .case-decisions, .case-problem,
+    .case-arch { cursor: none; }
+    a, button, [role="button"], div.link-item,
+    .process-step, .feature-card, .value-card,
+    .insight-item, .decision-item, .research-card,
+    .deliverable-item, .arch-card, .swatch,
+    .nav-links a, .nav-logo, .back-link,
+    .next-title, .section-nav-item, .pdf-open-btn,
+    .pdf-btn, .pdf-close, .arch-site-link { cursor: pointer !important; pointer-events: auto !important; }
+    iframe { cursor: auto !important; pointer-events: auto !important; }
+    @media (max-width: 640px) { .cursor, .cursor-ring { display: none; } body { cursor: auto !important; } }
+
+    /* ── Case Study Depth ── */
+    .case-study-section { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .cs-intro { max-width: 640px; margin-bottom: 56px; }
+    .cs-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem,2.5vw,2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .cs-intro h2 em { font-style: italic; color: var(--accent); }
+    .cs-intro p { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .cs-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+    .cs-body { font-size: 1.05rem; font-weight: 300; color: var(--text-primary); line-height: 1.9; }
+    .cs-body + .cs-body { margin-top: 14px; }
+    .cs-callout { padding: 28px 32px; border-left: 3px solid var(--accent); background: var(--bg2); margin-top: 32px; border-radius: 0 2px 2px 0; }
+    .cs-callout p { font-size: 1rem; font-weight: 300; color: var(--text-primary); line-height: 1.8; }
+    .cs-callout strong { color: var(--accent); font-weight: 500; }
+    .cs-findings { display: flex; flex-direction: column; gap: 2px; }
+    .cs-finding { padding: 22px 24px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .cs-finding:hover { border-color: rgba(122,184,152,0.35); }
+    .cs-finding-label { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+    .cs-finding-text { font-size: 0.95rem; font-weight: 300; color: var(--text-primary); line-height: 1.65; }
+    .cs-rec-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+    .cs-rec { padding: 28px 24px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .cs-rec:hover { border-color: rgba(122,184,152,0.35); }
+    .cs-rec-num { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 700; color: rgba(122,184,152,0.15); line-height: 1; margin-bottom: 12px; }
+    .cs-rec-title { font-size: 0.85rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--white); margin-bottom: 8px; }
+    .cs-rec-text { font-size: 0.93rem; font-weight: 300; color: var(--text-secondary); line-height: 1.65; }
+    @media (max-width: 1280px) { .case-study-section { padding: 80px 40px; } }
+    @media (max-width: 900px) { .cs-two-col { grid-template-columns: 1fr; gap: 40px; } .cs-rec-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px) { .case-study-section { padding: 60px 24px; } .cs-rec-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<div class="page">
+
+  <!-- Sticky Section Nav -->
+  <nav class="section-nav" id="sectionNav">
+    <a href="#section-overview" class="section-nav-item" data-section="section-overview"><span class="snav-label">Overview</span><span class="snav-dot"></span></a>
+    <a href="#section-values" class="section-nav-item" data-section="section-values"><span class="snav-label">Brand Values</span><span class="snav-dot"></span></a>
+    <a href="#section-mark" class="section-nav-item" data-section="section-mark"><span class="snav-label">Graphic Mark</span><span class="snav-dot"></span></a>
+    <a href="#section-process" class="section-nav-item" data-section="section-process"><span class="snav-label">Process</span><span class="snav-dot"></span></a>
+    <a href="#section-colors" class="section-nav-item" data-section="section-colors"><span class="snav-label">Colors</span><span class="snav-dot"></span></a>
+    <a href="#section-mockups" class="section-nav-item" data-section="section-mockups"><span class="snav-label">Mockups</span><span class="snav-dot"></span></a>
+    <a href="#section-explore" class="section-nav-item" data-section="section-explore"><span class="snav-label">Explore</span><span class="snav-dot"></span></a>
+  </nav>
+
+  <!-- Nav -->
+  <nav id="nav">
+    <a href="index.html" class="nav-logo">Erica <span>Wang</span></a>
+    <div class="nav-links">
+      <a href="index.html#work">Work</a>
+      <a href="index.html#about">About</a>
+      <a href="pdf/Erica_Wang_Resume.pdf" target="_blank" class="resume-btn">Resume ↗</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="case-hero">
+    <img class="case-hero-img" src="images/NomNom.png" alt="NomNom brand" />
+    <div class="case-hero-content">
+      <a href="index.html#work" class="back-link">Back to Work</a>
+      <div class="case-eyebrow">Brand Identity — Spring 2025</div>
+      <h1 class="case-title"><em>NomNom</em> Brand</h1>
+      <div class="case-hero-meta">
+        <div class="meta-item"><span class="meta-label">Role</span><span class="meta-value">Solo Brand Designer</span></div>
+        <div class="meta-item"><span class="meta-label">Tools</span><span class="meta-value">Figma · Adobe InDesign</span></div>
+        <div class="meta-item"><span class="meta-label">Type</span><span class="meta-value">Visual Identity System</span></div>
+        <div class="meta-item"><span class="meta-label">Pages</span><span class="meta-value">20-Page Brand Guidelines</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Overview -->
+  <section class="case-overview" id="section-overview">
+    <div class="reveal">
+      <div class="section-label">Overview</div>
+      <h2 class="overview-heading">A brand built around the <em>joy</em> of snacking</h2>
+      <p class="overview-text">NomNom is a fully fictional food organization — a snack-centric community driven by passion, curiosity, and the belief that every snack should bring a smile to your face. I conceived and branded it entirely from scratch.</p>
+      <p class="overview-text">The project spans the full spectrum of brand identity: mission and values, a complete logo system, wordmark (set in Fredoka Bold), the "Fiery Cookie" graphic mark, color palette, typography hierarchy, lockup rules, usage do's and don'ts — all compiled into a 20-page Visual Identity Guidelines document.</p>
+      <p class="overview-text">Every member of NomNom is a <em>Nomster</em>. From bold, adventurous flavors to nostalgic childhood favorites, every conversation and decision revolves around the joy of snacking. If it doesn't satisfy our taste buds or fill our bellies, it's simply not on the menu.</p>
+
+      <div class="brand-quote" style="margin-top: 32px;">
+        <p>"Join us and savor every delicious moment — where snacks reign supreme!"</p>
+        <span>NomNom Brand Tagline</span>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="overview-stats">
+        <div class="stat-row">
+          <div class="stat-label">Organization Concept</div>
+          <div class="stat-value">Snack-Lover's Community</div>
+          <div class="stat-sub">A fictional faction of "Nomsters" united by passion for bold flavors, nostalgic favorites, and the joy of snacking</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Scope</div>
+          <div class="stat-value">Full Identity System</div>
+          <div class="stat-sub">Logo · wordmark · graphic mark · lockups · color palette · typography · usage guidelines · mockups</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Deliverable</div>
+          <div class="stat-value">20-Page Brand Guidelines</div>
+          <div class="stat-sub">Complete visual identity document covering every element of the NomNom brand system</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Typography</div>
+          <div class="stat-value">Fredoka + Baloo 2</div>
+          <div class="stat-sub">Fredoka Bold for the wordmark and logo; Baloo 2 ExtraBold for H1 headlines; Fredoka family throughout</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Brand Values -->
+  <section class="case-values" id="section-values">
+    <div class="values-intro reveal">
+      <div class="section-label">Brand Values</div>
+      <h2>What <em>NomNom</em> stands for</h2>
+      <p>Four core values shaped every design decision in the NomNom system — from color choices to logo usage rules to the personality of the Fiery Cookie graphic mark.</p>
+    </div>
+    <div class="values-grid">
+      <div class="value-card reveal">
+        <div class="value-icon">🔥</div>
+        <div class="value-name">Passion</div>
+        <div class="value-desc">Passion drives us, Nomsters, to explore every snack imaginable. Our enthusiasm for discovering new flavors and finding the perfect snack is boundless. Whether it's a spicy new chip or a nostalgic childhood treat, our love for snacks fuels our daily adventures.</div>
+      </div>
+      <div class="value-card reveal">
+        <div class="value-icon">🤝</div>
+        <div class="value-name">Community</div>
+        <div class="value-desc">Snacks are best enjoyed together. We foster a sense of belonging, where everyone is welcome — no matter your taste, background, or snacking style.</div>
+      </div>
+      <div class="value-card reveal">
+        <div class="value-icon">🧭</div>
+        <div class="value-name">Exploration</div>
+        <div class="value-desc">We are adventurous snackers, always on the lookout for new and exciting flavors. If it doesn't satisfy our taste buds or fill our bellies, it's simply not on the menu.</div>
+      </div>
+      <div class="value-card reveal">
+        <div class="value-icon">😄</div>
+        <div class="value-name">Joy</div>
+        <div class="value-desc">At NomNom, we believe that every snack should bring a smile to your face. Joy isn't an afterthought — it's the entire reason we exist.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Graphic Mark -->
+  <section class="case-mark" id="section-mark">
+    <div class="mark-text reveal">
+      <div class="section-label">Graphic Mark</div>
+      <h2>The <em>Fiery Cookie</em></h2>
+      <p>The NomNom graphic mark — officially named the Fiery Cookie — is a chocolate chip cookie in the shape of fire. It's playful, warm, and immediately communicates the brand's core personality: bold flavor, snack passion, and a little bit of heat.</p>
+      <p style="margin-top:14px">The mark exists in three gradient colorways for different contexts, alongside a lockup version that embeds "nom" directly within the flame shape. Clearspace rules require a minimum equal to the horizontal length of one chocolate chip around all sides.</p>
+      <p style="margin-top:14px">Key rule: the Fiery Cookie must never be rotated, stretched, beveled, given drop shadows, or recolored with different gradients — it must always appear in its approved colorway.</p>
+    </div>
+    <div class="reveal">
+      <div class="mark-variants">
+        <div class="mark-variant">
+          <img src="images/Group_23.png" alt="Fiery Cookie — primary warm gradient" />
+          <div class="mark-variant-label">Primary</div>
+        </div>
+        <div class="mark-variant">
+          <img src="images/Group_22.png" alt="Fiery Cookie — cool gradient variant" />
+          <div class="mark-variant-label">Cool Variant</div>
+        </div>
+        <div class="mark-variant">
+          <img src="images/Group_21.png" alt="Fiery Cookie — alternate gradient" />
+          <div class="mark-variant-label">Alt Variant</div>
+        </div>
+      </div>
+      <div style="margin-top: 2px;">
+        <div class="mark-variant" style="background:#0a0a0a; display:flex; align-items:center; justify-content:center;">
+          <img src="images/Group_24.png" alt="Fiery Cookie logo lockup with nom" style="width:100%; height:180px; object-fit:contain; padding:24px; display:block;" />
+        </div>
+        <div class="mark-variant-label" style="background:#0a0a0a; padding: 10px 14px; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary); border-top: 1px solid var(--border);">Logo Lockup — "nom" embedded in mark</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Process -->
+  <section class="case-process" id="section-process">
+    <div class="process-intro reveal">
+      <div class="section-label">Process</div>
+      <h2>From brand <em>concept</em> to<br>full identity system</h2>
+      <p>Building NomNom meant starting from zero — no brief, no client, just a blank canvas and a concept. The process moved from brand strategy and storytelling through to a complete 20-page visual identity guideline document.</p>
+    </div>
+    <div class="process-steps">
+      <div class="process-step reveal">
+        <div class="step-num">01</div>
+        <div class="step-title">Brand Strategy</div>
+        <div class="step-desc">Defined the organization's concept, mission, and audience. Established the "Nomster" community identity and articulated the four brand values — Passion, Community, Exploration, Joy — that anchor all visual decisions.</div>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">02</div>
+        <div class="step-title">Logo & Mark Design</div>
+        <div class="step-desc">Designed the wordmark in Fredoka Bold and the Fiery Cookie graphic mark — a chocolate chip cookie in the shape of fire. Defined primary and alternative lockups, clearspace rules (based on the "o" in "nom"), and sizing guidelines.</div>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">03</div>
+        <div class="step-title">Color & Typography</div>
+        <div class="step-desc">Built a full palette with named colors: Cheddar Burst, Caramel Crunch, Cherry Pop for the graphic mark gradient; Cotton Candy Sky, Blueberry Frost, Berry Swirl for backgrounds; plus 5 primary colors with tint variants. Typography uses Baloo 2 ExtraBold for H1 and the Fredoka family throughout.</div>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">04</div>
+        <div class="step-title">Guidelines & Mockups</div>
+        <div class="step-desc">Documented comprehensive do's and don'ts for every brand element. Produced a NomNom stamp mockup ("You've been NomNom'd — Approved by Nomsters") and a candy bar sticker mockup ("Taste Tested, Nom-Worthy — Nomsters Approve").</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Color Palette -->
+  <section class="case-colors" id="section-colors">
+    <div class="colors-intro reveal">
+      <div class="section-label">Color Palette</div>
+      <h2>Named colors, <em>snack-inspired</em></h2>
+      <p>Every color in the NomNom system has a snack-inspired name. The palette is divided into graphic mark gradient colors, background gradient colors, and five primary colors — each with two tint variants.</p>
+    </div>
+
+    <div class="color-group-label reveal">Graphic Mark Gradient</div>
+    <div class="color-row three reveal">
+      <div class="swatch light-text" style="background:#ffbf2e;"><span class="swatch-name" style="color:rgba(0,0,0,0.65)">Cheddar Burst</span><span class="swatch-hex" style="color:rgba(0,0,0,0.5)">#ffbf2e</span></div>
+      <div class="swatch light-text" style="background:#f1a356;"><span class="swatch-name" style="color:rgba(0,0,0,0.65)">Caramel Crunch</span><span class="swatch-hex" style="color:rgba(0,0,0,0.5)">#f1a356</span></div>
+      <div class="swatch light-text" style="background:#dd1818;"><span class="swatch-name">Cherry Pop</span><span class="swatch-hex">#dd1818</span></div>
+    </div>
+
+    <div class="color-group-label reveal">Background Gradient</div>
+    <div class="color-row three reveal">
+      <div class="swatch dark-text" style="background:#9ce8ff;"><span class="swatch-name">Cotton Candy Sky</span><span class="swatch-hex">#9ce8ff</span></div>
+      <div class="swatch dark-text" style="background:#baadff;"><span class="swatch-name">Blueberry Frost</span><span class="swatch-hex">#baadff</span></div>
+      <div class="swatch dark-text" style="background:#e1bad8;"><span class="swatch-name">Berry Swirl</span><span class="swatch-hex">#e1bad8</span></div>
+    </div>
+
+    <div class="color-group-label reveal">Primary Colors</div>
+    <div class="color-row reveal">
+      <div class="swatch light-text" style="background:#ff45ff;"><span class="swatch-name">Bubblegum</span><span class="swatch-hex">#ff45ff</span></div>
+      <div class="swatch dark-text" style="background:#38d9ff;"><span class="swatch-name">Blue Raspberry</span><span class="swatch-hex">#38d9ff</span></div>
+      <div class="swatch dark-text" style="background:#0affa1;"><span class="swatch-name">Minty Crunch</span><span class="swatch-hex">#0affa1</span></div>
+      <div class="swatch dark-text" style="background:#fff02e;"><span class="swatch-name">Lemon Zest</span><span class="swatch-hex">#fff02e</span></div>
+      <div class="swatch light-text" style="background:#695cff;"><span class="swatch-name">Grape Jelly</span><span class="swatch-hex">#695cff</span></div>
+    </div>
+
+    <div class="color-group-label reveal">Must-Have Colors</div>
+    <div class="color-row two reveal">
+      <div class="swatch light-text" style="background:#000000;"><span class="swatch-name">Licorice Twist</span><span class="swatch-hex">#000000</span></div>
+      <div class="swatch dark-text" style="background:#ffffff; border: 1px solid rgba(0,0,0,0.08);"><span class="swatch-name">Marshmallow</span><span class="swatch-hex">#ffffff</span></div>
+    </div>
+  </section>
+
+  <!-- Mockups Gallery -->
+  <section class="case-gallery" id="section-mockups">
+    <div class="gallery-header reveal">
+      <div class="section-label">Mockups</div>
+      <h2>The brand <em>in the world</em></h2>
+      <p>Two brand mockups showing NomNom applied in real-world contexts — a rubber stamp and a candy bar sticker, both expressing the brand's playful, snack-approval personality.</p>
+    </div>
+    <div class="mockup-grid">
+      <div class="mockup-item reveal">
+        <img src="images/NomNom_Stamp_Mockup.png" alt="NomNom stamp mockup — You've been NomNom'd, Approved by Nomsters" style="object-fit: contain;" />
+      </div>
+      <div class="mockup-item reveal">
+        <img src="images/NomNom_CandyBar_New.png" alt="NomNom candy bar sticker mockup — Taste Tested, Nom-Worthy" style="object-fit: contain; background: #f5f0ec;" />
+      </div>
+    </div>
+
+    <!-- Typography showcase -->
+    <div class="gallery-sub-label reveal">Typography System</div>
+    <div class="type-rows reveal">
+      <div class="type-row">
+        <div class="type-meta">
+          <span class="type-name">Baloo 2 ExtraBold</span>
+          <span class="type-usage">H1 — Titles & big headlines<br>36pt / 30pt leading</span>
+        </div>
+        <div class="type-sample" style="font-weight:900; letter-spacing:-0.01em;">NomNom</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <span class="type-name">Fredoka Bold</span>
+          <span class="type-usage">Wordmark & logo only<br>The brand's signature typeface</span>
+        </div>
+        <div class="type-sample" style="font-weight:700;">NomNom</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <span class="type-name">Fredoka SemiBold</span>
+          <span class="type-usage">H2 Headlines<br>18pt / 24pt leading</span>
+        </div>
+        <div class="type-sample small" style="font-weight:600;">Become a Nomster</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <span class="type-name">Fredoka Regular</span>
+          <span class="type-usage">Body copy<br>14pt / 16.8pt leading</span>
+        </div>
+        <div class="type-sample small" style="font-weight:400; color: var(--text-secondary);">Every snack should bring a smile to your face.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Links & Deliverables -->
+  <section class="case-links" id="section-explore">
+    <div style="opacity:1;transform:none;">
+      <div class="section-label">Explore</div>
+      <h2 class="links-heading">View the full<br><em>brand system</em></h2>
+      <p class="links-sub">The complete NomNom Visual Identity Guidelines are available in Figma — all 20 pages covering logo construction, color usage, typography hierarchy, lockup rules, and brand mockups.</p>
+      <div class="link-list" style="pointer-events:auto!important;position:relative;z-index:10;">
+        <div role="button" tabindex="0" class="link-item" onclick="window.open('https://www.figma.com/design/W11uQhBzRg8g7kvBEYZ8vk/NomNom-Project?node-id=2301-33&t=JDO6xXJcQG9FAF7t-1', '_blank')" onkeydown="if(event.key==='Enter')window.open('https://www.figma.com/design/W11uQhBzRg8g7kvBEYZ8vk/NomNom-Project?node-id=2301-33&t=JDO6xXJcQG9FAF7t-1', '_blank')">
+          <div class="link-item-left">
+            <span class="link-item-title">Figma — Visual Identity Guidelines</span>
+            <span class="link-item-desc">Full 20-page brand system — logo, color, type, lockups, do's & don'ts, mockups</span>
+          </div>
+          <span class="link-arrow">↗</span>
+        </div>
+      </div>
+      <button class="pdf-open-btn" id="openPdfBtn">📄 View Brand Guidelines PDF</button>
+    </div>
+    <div style="opacity:1;transform:none;">
+      <div class="section-label">Deliverables</div>
+      <div class="deliverables">
+        <div class="deliverable-item">
+          <div class="deliverable-label">Logo System</div>
+          <div class="deliverable-value">Wordmark (Fredoka Bold), Fiery Cookie graphic mark, primary + alternative lockups with clearspace rules</div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-label">Color Palette</div>
+          <div class="deliverable-value">8 named brand colors + 5 primary colors with 10 tint variants — all with CMYK, RGB, and HEX values</div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-label">Typography System</div>
+          <div class="deliverable-value">Baloo 2 ExtraBold for H1; Fredoka Bold/SemiBold/Medium/Regular for all brand text — full hierarchy defined</div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-label">Usage Guidelines</div>
+          <div class="deliverable-value">Comprehensive do's and don'ts for wordmark, graphic mark, lockups, and color — covering stretch, rotation, effects, transparency, and color misuse</div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-label">Brand Mockups</div>
+          <div class="deliverable-value">NomNom rubber stamp ("You've been NomNom'd") and candy bar sticker ("Taste Tested, Nom-Worthy")</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Next -->
+  <section class="case-next reveal">
+    <div>
+      <div class="next-label">Next Project</div>
+      <a href="CoT.html" class="next-title">City of <em style="font-style:italic;color:var(--accent)">Tomorrow</em></a>
+    </div>
+    <span class="next-arrow">→</span>
+  </section>
+
+  <footer>
+    <span>© 2025 Erica Wang</span>
+    <span>UI/UX Designer & Frontend Developer — New York</span>
+  </footer>
+
+</div>
+
+<script>
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  });
+  (function animRing() {
+    rx += (mx - rx) * 0.35; ry += (my - ry) * 0.35;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  })();
+  document.querySelectorAll('a, .process-step, .value-card, .deliverable-item, .swatch, .mark-variant, .link-item').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.classList.add('big'); ring.classList.add('big'); });
+    el.addEventListener('mouseleave', () => { cursor.classList.remove('big'); ring.classList.remove('big'); });
+  });
+
+  const navEl = document.getElementById('nav');
+  let lastScrollY = 0;
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY;
+    navEl.classList.toggle('scrolled', scrollY > 40);
+    if (scrollY > lastScrollY && scrollY > 80) navEl.classList.add('hidden');
+    else navEl.classList.remove('hidden');
+    lastScrollY = scrollY;
+  });
+
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  const snavItems = document.querySelectorAll('.section-nav-item');
+  const sections = ['section-overview','section-values','section-mark','section-process','section-summary','section-findings','section-recommendations','section-colors','section-mockups','section-system','section-explore']
+    .map(id => document.getElementById(id)).filter(Boolean);
+  const snavObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        snavItems.forEach(item => item.classList.remove('active'));
+        const active = document.querySelector(`.section-nav-item[data-section="${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.25 });
+  sections.forEach(s => snavObserver.observe(s));
+  document.querySelectorAll('.section-nav-item').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+
+<!-- PDF Viewer Modal -->
+<div class="pdf-modal" id="pdfModal">
+  <div class="pdf-modal-inner">
+    <div class="pdf-modal-header">
+      <span class="pdf-modal-title">NomNom Brand Guidelines — 20 Pages</span>
+      <div class="pdf-modal-controls">
+        <a href="pdf/NomNom_Brand_Guidelines.pdf" target="_blank" class="pdf-btn">Open Full PDF ↗</a>
+        <button class="pdf-close" id="closePdfBtn">✕</button>
+      </div>
+    </div>
+    <div class="pdf-frame-wrap">
+      <iframe id="pdfFrame" src="" title="NomNom Brand Guidelines PDF"></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+  // PDF Modal — runs after modal HTML exists in DOM
+  const pdfModal = document.getElementById('pdfModal');
+  const pdfFrame = document.getElementById('pdfFrame');
+  document.getElementById('openPdfBtn').addEventListener('click', () => {
+    pdfFrame.src = 'pdf/NomNom_Brand_Guidelines.pdf';
+    pdfModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  });
+  document.getElementById('closePdfBtn').addEventListener('click', () => {
+    pdfModal.classList.remove('open');
+    document.body.style.overflow = '';
+    setTimeout(() => { pdfFrame.src = ''; }, 300);
+  });
+  pdfModal.addEventListener('click', (e) => {
+    if (e.target === pdfModal) {
+      pdfModal.classList.remove('open');
+      document.body.style.overflow = '';
+      setTimeout(() => { pdfFrame.src = ''; }, 300);
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && pdfModal.classList.contains('open')) {
+      pdfModal.classList.remove('open');
+      document.body.style.overflow = '';
+      setTimeout(() => { pdfFrame.src = ''; }, 300);
+    }
+  });
+</script>
+
+</body>
+</html>

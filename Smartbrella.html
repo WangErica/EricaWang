@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartBrella — Erica Wang</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0e0f0e; --bg2: #141614; --white: #f2f4f1;
+      --text-primary: rgba(242,244,241,0.88); --text-secondary: rgba(242,244,241,0.65);
+      --text-tertiary: rgba(242,244,241,0.38);
+      --accent: #7ab898; --accent-dim: rgba(122,184,152,0.15); --border: rgba(242,244,241,0.1);
+    }
+    html, body { width: 100%; background: var(--bg); color: var(--white); font-family: 'Outfit', sans-serif; overflow-x: hidden; cursor: auto; }
+
+    .cursor { position: fixed; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); transition: width .18s,height .18s; box-shadow: 0 0 8px rgba(122,184,152,0.8); }
+    .cursor-ring { position: fixed; width: 38px; height: 38px; border: 1.5px solid var(--accent); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); opacity: 0.6; transition: opacity .2s; }
+    .cursor.big { width: 18px; height: 18px; }
+    .cursor-ring.big { opacity: 0.25; }
+    body::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 2; opacity: 0.02; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 180px; }
+
+    /* Section Nav */
+    .section-nav {
+      position: fixed; right: 33px; top: 50%; transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 16px;
+      z-index: 90; align-items: flex-end;
+      pointer-events: none;
+    }
+    .section-nav-item {
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer; text-decoration: none;
+      color: var(--text-tertiary);
+      transition: color .25s;
+      pointer-events: auto;
+    }
+    .section-nav-item:hover { color: var(--accent); }
+    .section-nav-item.active { color: var(--accent); }
+    .section-nav-item.active .snav-dot { background: var(--accent); box-shadow: 0 0 6px rgba(122,184,152,0.6); transform: scale(1.4); }
+    .snav-label {
+      font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase;
+      opacity: 0.45; transition: opacity .2s;
+      white-space: nowrap;
+    }
+    .section-nav-item:hover .snav-label { opacity: 1; }
+    .section-nav-item.active .snav-label { opacity: 1; }
+    .snav-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--text-tertiary); flex-shrink: 0;
+      transition: background .25s, box-shadow .25s, transform .25s;
+    }
+    @media (max-width: 900px) { .section-nav { display: none; } }
+
+    /* Nav */
+    nav#nav { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 28px 56px; z-index: 100; transition: background .3s, border-color .3s, transform .4s ease, opacity .4s ease; }
+    nav#nav.scrolled { background: rgba(14,15,14,0.85); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); }
+    nav#nav.hidden { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 300; letter-spacing: 0.04em; color: var(--white); text-decoration: none; cursor: pointer; }
+    .nav-logo span { color: var(--accent); font-style: italic; }
+    .nav-links { display: flex; gap: 36px; align-items: center; }
+    .nav-links a { color: var(--text-tertiary); text-decoration: none; font-size: 0.78rem; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; transition: color .2s; cursor: pointer; }
+    .nav-links a:hover { color: var(--white); }
+    .nav-links .resume-btn { border: 1px solid var(--border); padding: 8px 18px; border-radius: 2px; transition: border-color .2s, color .2s; }
+    .nav-links .resume-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .page { position: relative; z-index: 3; }
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .section-label { font-size: 0.72rem; font-weight: 400; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 28px; display: flex; align-items: center; gap: 12px; }
+    .section-label::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Hero */
+    .case-hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 56px 80px; position: relative; overflow: hidden; background: var(--bg); }
+    .case-hero::before { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(ellipse 60% 50% at 70% 30%, rgba(122,184,152,0.06) 0%, transparent 65%),
+                  radial-gradient(ellipse 40% 40% at 20% 70%, rgba(122,184,152,0.04) 0%, transparent 55%); }
+    .case-hero-content { position: relative; z-index: 2; max-width: 900px; }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-tertiary); text-decoration: none; transition: color .2s; margin-bottom: 48px; cursor: pointer; }
+    .back-link:hover { color: var(--accent); }
+    .back-link::before { content: '←'; font-size: 0.9rem; }
+    .case-eyebrow { font-size: 0.72rem; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 12px; opacity: 0; animation: fadeUp .7s ease .2s forwards; }
+    .case-eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--accent); }
+    .case-title { font-family: 'Playfair Display', serif; font-size: clamp(3rem, 7vw, 6.5rem); font-weight: 700; line-height: 1.0; letter-spacing: -0.02em; margin-bottom: 28px; opacity: 0; animation: fadeUp .7s ease .35s forwards; }
+    .case-title em { font-style: italic; color: var(--accent); }
+    .case-hero-meta { display: flex; gap: 48px; flex-wrap: wrap; opacity: 0; animation: fadeUp .7s ease .55s forwards; }
+    .meta-item { display: flex; flex-direction: column; gap: 4px; }
+    .meta-label { font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); }
+    .meta-value { font-size: 0.9rem; font-weight: 300; color: var(--text-primary); }
+
+    /* Overview */
+    .case-overview { padding: 100px 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; border-top: 1px solid var(--border); }
+    .overview-heading { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 3vw, 2.8rem); font-weight: 300; line-height: 1.2; margin-bottom: 24px; }
+    .overview-heading em { font-style: italic; color: var(--accent); }
+    .overview-text { font-size: 1.05rem; font-weight: 300; color: var(--text-primary); line-height: 1.9; }
+    .overview-text + .overview-text { margin-top: 14px; }
+    .stat-row { padding: 20px 0; border-bottom: 1px solid var(--border); }
+    .stat-row:first-child { border-top: 1px solid var(--border); }
+    .stat-label { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 6px; }
+    .stat-value { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 300; color: var(--white); }
+    .stat-sub { font-size: 0.9rem; font-weight: 300; color: var(--text-secondary); margin-top: 4px; line-height: 1.55; }
+
+    /* Goal */
+    .case-goal { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .goal-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .goal-heading { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 16px; }
+    .goal-heading em { font-style: italic; color: var(--accent); }
+    .goal-text { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.9; }
+    .goal-text + .goal-text { margin-top: 14px; }
+    .stat-cards { display: flex; flex-direction: column; gap: 2px; }
+    .stat-card { padding: 24px 28px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .stat-card:hover { border-color: rgba(122,184,152,0.35); }
+    .stat-card-num { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 6px; }
+    .stat-card-label { font-size: 0.88rem; font-weight: 300; color: var(--text-secondary); line-height: 1.5; }
+
+    /* Process */
+    .case-process { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .process-intro { max-width: 640px; margin-bottom: 64px; }
+    .process-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .process-intro h2 em { font-style: italic; color: var(--accent); }
+    .process-intro p { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .process-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    .process-step { padding: 32px 24px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .process-step:hover { border-color: rgba(122,184,152,0.35); }
+    .step-num { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 700; color: rgba(122,184,152,0.15); line-height: 1; margin-bottom: 16px; }
+    .step-title { font-size: 0.88rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--white); margin-bottom: 10px; }
+    .step-desc { font-size: 0.95rem; font-weight: 300; color: var(--text-secondary); line-height: 1.75; }
+
+    /* Components */
+    .case-components { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .comp-intro { max-width: 640px; margin-bottom: 56px; }
+    .comp-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .comp-intro h2 em { font-style: italic; color: var(--accent); }
+    .comp-intro p { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .comp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; }
+    .comp-block { padding: 32px 28px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .comp-block:hover { border-color: rgba(122,184,152,0.35); }
+    .comp-icon { font-size: 1.5rem; margin-bottom: 14px; }
+    .comp-title { font-size: 0.88rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--white); margin-bottom: 10px; }
+    .comp-parts { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+    .comp-part { font-size: 0.82rem; font-weight: 300; color: var(--accent); }
+    .comp-desc { font-size: 0.93rem; font-weight: 300; color: var(--text-secondary); line-height: 1.65; }
+
+    /* Challenges */
+    .case-challenges { padding: 100px 56px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .challenges-heading { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 16px; }
+    .challenges-heading em { font-style: italic; color: var(--accent); }
+    .challenges-text { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.9; }
+    .challenges-text + .challenges-text { margin-top: 14px; }
+    .challenge-list { display: flex; flex-direction: column; gap: 0; }
+    .challenge-item { padding: 22px 0; border-bottom: 1px solid var(--border); }
+    .challenge-item:first-child { border-top: 1px solid var(--border); }
+    .challenge-label { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+    .challenge-text { font-size: 0.95rem; font-weight: 300; color: var(--text-primary); line-height: 1.65; }
+
+    /* App section */
+    .case-app { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .app-inner { width: 100%; }
+    .app-heading { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 16px; }
+    .app-heading em { font-style: italic; color: var(--accent); }
+    .app-text { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.9; }
+    .app-text + .app-text { margin-top: 14px; }
+    .app-features { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; margin-top: 32px; margin-bottom: 32px; }
+    .app-feature { padding: 18px 24px; border: 1px solid var(--border); background: var(--bg2); display: flex; gap: 16px; align-items: flex-start; transition: border-color .25s; }
+    .app-feature:hover { border-color: rgba(122,184,152,0.35); }
+    .app-feature-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+    .app-feature-text { font-size: 0.93rem; font-weight: 300; color: var(--text-primary); line-height: 1.6; }
+    .app-proto-btn { display: inline-flex; align-items: center; gap: 10px; margin-top: 32px; padding: 13px 26px; border: 1px solid var(--accent); border-radius: 2px; font-size: 0.82rem; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); text-decoration: none; transition: background .2s, color .2s; cursor: pointer; }
+    .app-proto-btn:hover { background: var(--accent); color: var(--bg); }
+
+    /* Links */
+    .case-links { padding: 100px 56px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .links-heading { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 8px; }
+    .links-heading em { font-style: italic; color: var(--accent); }
+    .links-sub { font-size: 1rem; font-weight: 300; color: var(--text-secondary); line-height: 1.8; margin-bottom: 36px; }
+    .link-list { display: flex; flex-direction: column; }
+    .link-item { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid var(--border); user-select: none; -webkit-user-select: none; transition: padding-left .2s; cursor: pointer; }
+    .link-item:first-child { border-top: 1px solid var(--border); }
+    .link-item:hover { padding-left: 10px; }
+    .link-item-left { display: flex; flex-direction: column; gap: 4px; }
+    .link-item-title { font-size: 1.05rem; font-weight: 400; color: var(--white); transition: color .2s; }
+    .link-item:hover .link-item-title { color: var(--accent); }
+    .link-item-desc { font-size: 0.85rem; font-weight: 300; color: var(--text-tertiary); }
+    .link-arrow { color: var(--accent); opacity: 0; transition: opacity .2s, transform .2s; }
+    .link-item:hover .link-arrow { opacity: 1; transform: translateX(-4px); }
+    .deliverables { display: flex; flex-direction: column; gap: 12px; }
+    .deliverable-item { padding: 20px 24px; border: 1px solid var(--border); border-radius: 2px; background: var(--bg2); transition: border-color .25s; }
+    .deliverable-item:hover { border-color: rgba(122,184,152,0.3); }
+    .deliverable-label { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 6px; }
+    .deliverable-value { font-size: 0.95rem; font-weight: 300; color: var(--text-primary); line-height: 1.55; }
+
+    /* Next */
+    .case-next { padding: 80px 56px 100px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-end; }
+    .next-label { font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 12px; }
+    .next-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 300; line-height: 1.1; color: var(--white); text-decoration: none; display: block; transition: color .2s; }
+    .next-title:hover { color: var(--accent); }
+    .next-arrow { font-size: 2rem; color: var(--accent); }
+
+    footer { padding: 24px 56px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    footer span { font-size: 0.72rem; color: var(--text-tertiary); letter-spacing: 0.06em; }
+
+    @media (max-width: 1280px) {
+      nav#nav, footer { padding: 24px 40px; }
+      .case-hero { padding: 0 40px 64px; }
+      .case-overview, .case-goal, .case-process, .case-components, .case-challenges, .case-app, .case-links { padding: 80px 40px; }
+      .goal-inner, .case-challenges { gap: 48px; }
+      .case-next { padding: 80px 40px; }
+    }
+    @media (max-width: 900px) {
+      .case-overview, .case-challenges, .case-links { grid-template-columns: 1fr; gap: 40px; }
+      .app-features { grid-template-columns: 1fr; }
+      .goal-inner { grid-template-columns: 1fr; gap: 40px; }
+      .process-steps { grid-template-columns: 1fr 1fr; }
+      .comp-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      nav#nav { padding: 20px 24px; } .nav-links { gap: 20px; }
+      .case-hero { padding: 0 24px 48px; } .case-hero-meta { gap: 24px; }
+      .case-overview, .case-goal, .case-process, .case-components, .case-challenges, .case-app, .case-links { padding: 60px 24px; }
+      .process-steps { grid-template-columns: 1fr; }
+      .case-next { padding: 60px 24px 80px; flex-direction: column; align-items: flex-start; gap: 16px; }
+      footer { padding: 20px 24px; flex-direction: column; gap: 8px; text-align: center; }
+    }
+
+    /* ── Case Study Depth ── */
+    .case-study-section { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .cs-intro { max-width: 640px; margin-bottom: 56px; }
+    .cs-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem,2.5vw,2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .cs-intro h2 em { font-style: italic; color: var(--accent); }
+    .cs-intro p { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .cs-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+    .cs-body { font-size: 1.05rem; font-weight: 300; color: var(--text-primary); line-height: 1.9; }
+    .cs-body + .cs-body { margin-top: 14px; }
+    .cs-callout { padding: 28px 32px; border-left: 3px solid var(--accent); background: var(--bg2); margin-top: 32px; border-radius: 0 2px 2px 0; }
+    .cs-callout p { font-size: 1rem; font-weight: 300; color: var(--text-primary); line-height: 1.8; }
+    .cs-callout strong { color: var(--accent); font-weight: 500; }
+    .cs-findings { display: flex; flex-direction: column; gap: 2px; }
+    .cs-finding { padding: 22px 24px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .cs-finding:hover { border-color: rgba(122,184,152,0.35); }
+    .cs-finding-label { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+    .cs-finding-text { font-size: 0.95rem; font-weight: 300; color: var(--text-primary); line-height: 1.65; }
+    .cs-rec-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+    .cs-rec { padding: 28px 24px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .cs-rec:hover { border-color: rgba(122,184,152,0.35); }
+    .cs-rec-num { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 700; color: rgba(122,184,152,0.15); line-height: 1; margin-bottom: 12px; }
+    .cs-rec-title { font-size: 0.85rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--white); margin-bottom: 8px; }
+    .cs-rec-text { font-size: 0.93rem; font-weight: 300; color: var(--text-secondary); line-height: 1.65; }
+    @media (max-width: 1280px) { .case-study-section { padding: 80px 40px; } }
+    @media (max-width: 900px) { .cs-two-col { grid-template-columns: 1fr; gap: 40px; } .cs-rec-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px) { .case-study-section { padding: 60px 24px; } .cs-rec-grid { grid-template-columns: 1fr; } }
+
+    /* ── Photo grids ── */
+    .photo-grid { display: grid; gap: 2px; }
+    .photo-grid.cols-3 { grid-template-columns: repeat(3,1fr); }
+    .photo-grid.cols-2 { grid-template-columns: repeat(2,1fr); }
+    .photo-grid.cols-5 { grid-template-columns: repeat(5,1fr); }
+    .photo-cell { overflow: hidden; background: var(--bg2); position: relative; }
+    .photo-cell img { width: 100%; height: 260px; object-fit: cover; display: block; transition: transform .4s ease, opacity .3s; opacity: 0.85; filter: grayscale(10%); }
+    .photo-cell img:hover { transform: scale(1.04); opacity: 1; filter: grayscale(0%); }
+    .photo-cell.tall img { height: 380px; }
+    .photo-cell.contain img { object-fit: contain; background: #111; padding: 16px; }
+    .photo-caption { padding: 12px 56px; font-size: 0.78rem; letter-spacing: 0.08em; color: var(--text-tertiary); border-bottom: 1px solid var(--border); }
+    @media (max-width: 900px) { .photo-grid.cols-3, .photo-grid.cols-5 { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 640px) { .photo-grid.cols-3, .photo-grid.cols-2, .photo-grid.cols-5 { grid-template-columns: 1fr; } .photo-cell img { height: 220px; } .photo-caption { padding: 12px 24px; } }
+
+    /* Next Steps subsection labels */
+    .cs-sub-label {
+      font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--accent); margin: 48px 0 20px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .cs-sub-label::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<div class="page">
+
+  <!-- Section Nav -->
+  <nav class="section-nav" id="sectionNav">
+    <a href="#section-overview" class="section-nav-item" data-section="section-overview"><span class="snav-label">Overview</span><span class="snav-dot"></span></a>
+    <a href="#section-goal" class="section-nav-item" data-section="section-goal"><span class="snav-label">Goal</span><span class="snav-dot"></span></a>
+    <a href="#section-process" class="section-nav-item" data-section="section-process"><span class="snav-label">Process</span><span class="snav-dot"></span></a>
+    <a href="#section-components" class="section-nav-item" data-section="section-components"><span class="snav-label">Components</span><span class="snav-dot"></span></a>
+    <a href="#section-challenges" class="section-nav-item" data-section="section-challenges"><span class="snav-label">Challenges</span><span class="snav-dot"></span></a>
+    <a href="#section-summary" class="section-nav-item" data-section="section-summary"><span class="snav-label">Summary</span><span class="snav-dot"></span></a>
+    <a href="#section-app" class="section-nav-item" data-section="section-app"><span class="snav-label">App & Final Product</span><span class="snav-dot"></span></a>
+    <a href="#section-recommendations" class="section-nav-item" data-section="section-recommendations"><span class="snav-label">Next Steps</span><span class="snav-dot"></span></a>
+    <a href="#section-explore" class="section-nav-item" data-section="section-explore"><span class="snav-label">Explore</span><span class="snav-dot"></span></a>
+  </nav>
+
+  <!-- Nav -->
+  <nav id="nav">
+    <a href="index.html" class="nav-logo" onclick="window.location.href='index.html';return false;">Erica <span>Wang</span></a>
+    <div class="nav-links">
+      <a href="index.html#work" onclick="window.location.href='index.html#work';return false;">Work</a>
+      <a href="index.html#about" onclick="window.location.href='index.html#about';return false;">About</a>
+      <a href="pdf/Erica_Wang_Resume.pdf" target="_blank" class="resume-btn">Resume ↗</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="case-hero">
+    <!-- Logo watermark -->
+    <img src="images/IMG_2836.jpg" alt="SmartBrella logo" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.06;z-index:-1;pointer-events:none;filter:grayscale(100%);" />
+    <div class="case-hero-content">
+      <a href="Wanderscape.html" class="back-link">WanderScape</a>
+      <div class="case-eyebrow">Physical Computing & App Design — Spring 2022</div>
+      <h1 class="case-title">Smart<em>Brella</em></h1>
+      <div class="case-hero-meta">
+        <div class="meta-item"><span class="meta-label">Role</span><span class="meta-value">Project Manager & Programmer</span></div>
+        <div class="meta-item"><span class="meta-label">Type</span><span class="meta-value">Group Project</span></div>
+        <div class="meta-item"><span class="meta-label">Tools</span><span class="meta-value">Arduino · Python · CAD · Figma</span></div>
+        <div class="meta-item"><span class="meta-label">Funded By</span><span class="meta-value">NYU Tandon EG1003</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Overview -->
+  <section class="case-overview" id="section-overview">
+    <div class="reveal">
+      <div class="section-label">Overview</div>
+      <h2 class="overview-heading">An umbrella that <em>listens</em><br>— and connects</h2>
+      <p class="overview-text">SmartBrella is an automated umbrella that opens and closes in response to a sound command — specifically, the sound of a clap. It's also Bluetooth-connected to a companion app, giving users remote control and weather-based reminders.</p>
+      <p class="overview-text">The project was built using Computer-Aided Design (CAD), Python, and Arduino — with hardware components including VEX motors, a KY-038 sound sensor, a Bluefruit Bluetooth module, and an Arduino UNO board. Funded by the NYU Tandon EG1003 course, SmartBrella was a group project in which I served as Project Manager and Programmer.</p>
+      <p class="overview-text">The result is a functional smart umbrella prototype that automatically opens and closes via sound recognition or smartphone Bluetooth — designed with accessibility at its core.</p>
+    </div>
+    <div class="reveal">
+      <div class="stat-row">
+        <div class="stat-label">Problem</div>
+        <div class="stat-value">Manual Umbrellas are Inaccessible</div>
+        <div class="stat-sub">Opening and closing an umbrella requires strength and dexterity — a real barrier for people with disabilities</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-label">Solution</div>
+        <div class="stat-value">Sound + Bluetooth Automation</div>
+        <div class="stat-sub">Clap to open/close, or use the companion app — no grip or strength required</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-label">My Role</div>
+        <div class="stat-value">Project Manager & Programmer</div>
+        <div class="stat-sub">Led the team, wrote the Arduino code, Bluetooth wiring, app design in Figma, and project scheduling</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-label">Team</div>
+        <div class="stat-value">4 Members</div>
+        <div class="stat-sub">Erica Wang · Jack Yang · Kai Shinozaki-Conefrey · Selena Cheung</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-label">Stack</div>
+        <div class="stat-value">Arduino · Python · CAD · Figma</div>
+        <div class="stat-sub">Hardware programming, CAD for component design, Figma for the companion app UI</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Goal -->
+  <section class="case-goal" id="section-goal">
+    <div class="goal-inner">
+      <div class="reveal">
+        <div class="section-label">Our Goal</div>
+        <h2 class="goal-heading">Accessibility<br>& <em>convenience</em></h2>
+        <p class="goal-text">Around 15% of people in the world have disabilities. Of these, 28% are blind or have vision impairment, and 17 million are amputees. Simple everyday actions — like opening an umbrella — can require significant strength and dexterity that many people simply don't have.</p>
+        <p class="goal-text">SmartBrella's goal was to make the umbrella — an item everyone owns — accessible to people with paraplegia, amputation, Parkinson's disease, blindness, or similar impairments. By automating the open/close mechanism with sound recognition and a Bluetooth app, we aimed to build something that genuinely improves daily life.</p>
+        <p class="goal-text">The companion app took this further: not only can users open and close the umbrella remotely, but the app connects to weather APIs and reminds users to bring their umbrella when rain is forecast.</p>
+      </div>
+      <div class="reveal">
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-card-num">15%</div>
+            <div class="stat-card-label">of the world's population lives with a disability — making everyday tools inaccessible to hundreds of millions of people</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-num">28%</div>
+            <div class="stat-card-label">of disabled people are blind or have significant vision impairment — accommodated by SmartBrella's sound recognition</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-num">17M</div>
+            <div class="stat-card-label">amputees worldwide who benefit from hands-free or voice-controlled everyday tools like SmartBrella</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Flowchart full-width strip -->
+  <div style="border-top:1px solid var(--border);" class="reveal">
+    <img src="images/Smartbrella_flowchart.png" alt="SmartBrella logic flowchart — Weather API, App command, and Sensor inputs" style="width:100%;display:block;max-height:520px;object-fit:contain;background:#f8f8f8;padding:32px;" />
+    <div class="photo-caption">System logic diagram — three inputs (Weather API, App command, Sound sensor) determining whether the umbrella opens or notifies the user</div>
+  </div>
+
+  <!-- Process -->
+  <section class="case-process" id="section-process">
+    <div class="process-intro reveal">
+      <div class="section-label">Process</div>
+      <h2>From concept sketch<br>to <em>working prototype</em></h2>
+      <p>The project ran from February to April 2022, documented weekly in the team's engineering notebook. Three parallel workstreams — mechanical design, electronics and programming, and app/Bluetooth — progressed simultaneously, with the team meeting every Thursday at 2pm and dividing tasks by expertise.</p>
+    </div>
+    <div class="process-steps">
+      <div class="process-step reveal">
+        <div class="step-num">01</div>
+        <div class="step-title">Mechanical Design</div>
+        <div class="step-desc">Designed a pulley system with two VEX motors on a shared axle — drilled through a LEGO gear to feed the yarn string. CAD modeling in Fusion 360 produced an .STL for 3D printing. The steel cord was looped through the umbrella's internal frame. Two motors were ultimately needed to overcome the umbrella's spring tension.</div>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">02</div>
+        <div class="step-title">Electronics & Arduino</div>
+        <div class="step-desc">Wired the KY-038 sound sensor, L293D motor driver, and Arduino UNO on a breadboard. Erica wired the Bluefruit LE UART module and established the first successful Bluetooth connection to the phone on April 21. The Arduino script detects a clap as a LOW signal and toggles motor direction — tracking last state to alternate open and close.</div>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">03</div>
+        <div class="step-title">Bluetooth & App</div>
+        <div class="step-desc">A Bluefruit Bluetooth module was wired onto the breadboard, enabling the companion app to send open/close messages to the motors wirelessly. The app was designed in Figma with remote control, Bluetooth pairing, and weather API integration for rain reminders.</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Logo & CAD Design Photos -->
+  <div style="border-top:1px solid var(--border);" class="reveal">
+    <div style="padding:40px 56px 24px; font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:12px;"><span style="width:20px;height:1px;background:var(--accent);display:inline-block;"></span>Logo Sketches</div>
+    <!-- Logo concepts: two side by side, large and breathing -->
+    <div class="photo-grid cols-2">
+      <div class="photo-cell contain reveal" style="background:#f5f5f5;">
+        <img src="images/Smartbrella_initial_logo.png" alt="SmartBrella initial logo sketches — brain umbrella and smart umbrella concepts" style="height:320px;filter:none;opacity:1;" />
+      </div>
+      <div class="photo-cell contain reveal" style="background:#111;">
+        <img src="images/Smartbrella_logo_proto.png" alt="SmartBrella logo prototype — Fusion 360 3D printed logo design" style="height:320px;filter:none;opacity:1;" />
+      </div>
+    </div>
+    <div class="photo-caption">Left: initial logo concept sketches (brain with WiFi signal + smart umbrella — final chosen design on the right) · Right: logo redesigned in Fusion 360, exported as .STL for 3D printing</div>
+
+    <div style="padding:40px 56px 24px; font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:12px;"><span style="width:20px;height:1px;background:var(--accent);display:inline-block;"></span>CAD Model Iterations</div>
+    <!-- CAD evolution: 3 key views in a row -->
+    <div class="photo-grid cols-3">
+      <div class="photo-cell reveal" style="background:#1a1a1a;">
+        <img src="images/Smartbrella_initial_brella1.png" alt="SmartBrella CAD — early angled view" style="height:280px;object-fit:contain;padding:12px;" />
+      </div>
+      <div class="photo-cell reveal" style="background:#1a1a1a;">
+        <img src="images/Smartbrella_initial_brella2.png" alt="SmartBrella CAD — detailed umbrella with handle" style="height:280px;object-fit:contain;padding:12px;" />
+      </div>
+      <div class="photo-cell reveal" style="background:#1a1a1a;">
+        <img src="images/Smartbrella_initial_brella3.png" alt="SmartBrella CAD — front elevation" style="height:280px;object-fit:contain;padding:12px;" />
+      </div>
+    </div>
+    <!-- Before/after comparisons -->
+    <div class="photo-grid cols-3" style="margin-top:2px;">
+      <div class="photo-cell reveal" style="background:#f0f0f0;">
+        <img src="images/Smartbrella_compare1.png" alt="SmartBrella CAD iteration — umbrella before and after refinement" style="height:280px;object-fit:contain;padding:12px;filter:none;" />
+      </div>
+      <div class="photo-cell reveal" style="background:#f0f0f0;">
+        <img src="images/Smartbrella_compare2.png" alt="SmartBrella CAD iteration — handle and stand refinement" style="height:280px;object-fit:contain;padding:12px;filter:none;" />
+      </div>
+      <div class="photo-cell reveal" style="background:#f0f0f0;">
+        <img src="images/Smartbrella_compare3.png" alt="SmartBrella CAD iteration — canopy shape before and after" style="height:280px;object-fit:contain;padding:12px;filter:none;" />
+      </div>
+    </div>
+    <div class="photo-caption">CAD model progression in Fusion 360 — three views (angled, detailed, elevation) followed by three before/after iterations refining umbrella shape, handle design, and canopy geometry</div>
+  </div>
+
+  <!-- Components -->
+  <section class="case-components" id="section-components">
+    <div class="comp-intro reveal">
+      <div class="section-label">Hardware Components</div>
+      <h2>What's inside<br><em>SmartBrella</em></h2>
+      <p>SmartBrella combines mechanical, electronic, and wireless components — all assembled and attached to a standard umbrella using the available materials including duct tape, cardboard, and 3D-printed parts.</p>
+    </div>
+    <div class="comp-grid">
+      <div class="comp-block reveal">
+        <div class="comp-icon">⚙️</div>
+        <div class="comp-title">Pulley Mechanism</div>
+        <div class="comp-parts">
+          <span class="comp-part">2× VEX Motors · LEGO Gear · Metal Axle · Shaft Collars · Yarn String</span>
+        </div>
+        <div class="comp-desc">Two motors share one axle with a gear at center. The string winds around the gear to pull the umbrella open, and unwinds to let it close — doubling the available torque by linking both motors.</div>
+      </div>
+      <div class="comp-block reveal">
+        <div class="comp-icon">🔊</div>
+        <div class="comp-title">Sound Recognition</div>
+        <div class="comp-parts">
+          <span class="comp-part">KY-038 Sound Sensor · Arduino UNO · Breadboard</span>
+        </div>
+        <div class="comp-desc">The KY-038 microphone detects a clap as a LOW signal. The Arduino script interprets this signal and toggles the motor direction — tracking whether the last action was open or close to determine what to do next.</div>
+      </div>
+      <div class="comp-block reveal">
+        <div class="comp-icon">📡</div>
+        <div class="comp-title">Bluetooth Module</div>
+        <div class="comp-parts">
+          <span class="comp-part">Bluefruit Bluetooth Module · DC Motor Driver Controller</span>
+        </div>
+        <div class="comp-desc">The Bluefruit module connects to the companion app via Bluetooth, relaying open/close commands from the phone to the motor driver — enabling fully wireless control without a physical interaction with the umbrella.</div>
+      </div>
+      <div class="comp-block reveal">
+        <div class="comp-icon">💻</div>
+        <div class="comp-title">Code</div>
+        <div class="comp-parts">
+          <span class="comp-part">Arduino IDE · Adafruit BLE Library · Standard Arduino Library</span>
+        </div>
+        <div class="comp-desc">Written in the Arduino IDE using the Adafruit BLE library for Bluetooth and the standard Arduino library for hardware control. The script recognizes clap inputs and Bluetooth messages, decides motor direction, and manages state across open/close cycles.</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Circuit Design Image -->
+  <div style="border-top: 1px solid var(--border);" class="reveal">
+    <img src="images/Circuit_Design.png" alt="SmartBrella circuit design — TinkerCAD wiring diagram" style="width:100%;display:block;max-height:580px;object-fit:contain;background:#111;padding:32px;" />
+    <div style="padding:16px 56px;font-size:0.85rem;letter-spacing:0.08em;color:var(--text-tertiary);border-bottom:1px solid var(--border);">TinkerCAD circuit design — Arduino UNO, L293D motor driver, KY-038 sound sensor, and Bluefruit Bluetooth module wiring</div>
+  </div>
+
+
+  <!-- Wiring & Assembly Photos -->
+  <div style="border-top:1px solid var(--border);" class="reveal">
+    <div style="padding:32px 56px 20px;font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:12px;"><span style="width:20px;height:1px;background:var(--accent);display:inline-block;"></span>Wiring & Electronics</div>
+    <div class="photo-grid cols-3">
+      <div class="photo-cell reveal" style="background:#0a0a0a;">
+        <img src="images/Smartbrella_wiring_1.webp" style="height:360px;object-fit:cover;" alt="SmartBrella wiring — steel cord pulley attachment to umbrella frame" />
+      </div>
+      <div class="photo-cell reveal" style="background:#0a0a0a;">
+        <img src="images/Smartbrella_wiring_2.webp" style="height:360px;object-fit:cover;" alt="SmartBrella wiring — Arduino UNO and Bluefruit BLE UART on breadboard" />
+      </div>
+      <div class="photo-cell reveal" style="background:#0a0a0a;">
+        <img src="images/Smartbrella_wiring_3.webp" style="height:360px;object-fit:cover;" alt="SmartBrella wiring — Elegoo UNO R3 with full circuit wiring" />
+      </div>
+    </div>
+    <div class="photo-caption">Left: steel cord looped through umbrella frame to connect to the pulley string · Center: the Bluefruit LE UART Bluetooth module seated on the breadboard (wired by Erica on April 21, establishing first phone connection) · Right: Elegoo UNO R3 with full multi-colored circuit connections to motor driver and sound sensor</div>
+  </div>
+
+  <!-- Proto Assembly Photos -->
+  <div style="border-top:1px solid var(--border);" class="reveal">
+    <div style="padding:32px 56px 20px;font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:12px;"><span style="width:20px;height:1px;background:var(--accent);display:inline-block;"></span>Assembly</div>
+    <div class="photo-grid cols-2">
+      <div class="photo-cell reveal">
+        <img src="images/Smartbrella_proto1.png" style="height:340px;object-fit:contain;background:#111;padding:16px;" alt="SmartBrella prototype assembly — VEX motors, pulley wheels, and wiring spread out with open umbrella" />
+      </div>
+      <div class="photo-cell reveal">
+        <img src="images/Smartbrella_proto2.png" style="height:340px;object-fit:contain;background:#111;padding:16px;" alt="SmartBrella prototype — full handle assembly with duct tape, motor, and circuit boards" />
+      </div>
+    </div>
+    <div class="photo-caption">Left: three VEX motor-and-pulley assemblies laid out with the open umbrella above, testing how much torque the string system could generate · Right: the finished handle assembly — two motors, Bluefruit Bluetooth module, L293D motor driver, and breadboard, all duct-taped into a working (if not pretty) enclosure</div>
+  </div>
+
+  <!-- Challenges -->
+  <section class="case-challenges" id="section-challenges">
+    <div class="reveal">
+      <div class="section-label">Challenges</div>
+      <h2 class="challenges-heading">What we ran into<br>— and how we <em>solved it</em></h2>
+      <p class="challenges-text">Building a physical prototype from scratch meant encountering real engineering problems. Three major challenges shaped the final design: motor torque limitations, sound sensor sensitivity, and the handle enclosure.</p>
+      <p class="challenges-text">Each challenge was iterated on until a workable solution was found — not always the most elegant, but functional and instructive for future iterations.</p>
+    </div>
+    <div class="reveal">
+      <div class="challenge-list">
+        <div class="challenge-item">
+          <div class="challenge-label">Motor Torque</div>
+          <div class="challenge-text">The VEX motors couldn't generate enough force to overcome the umbrella's springs. When the required string tension exceeded motor capacity, the motors simply locked up. Solution: two motors were connected via a shared axle, doubling the available torque.</div>
+        </div>
+        <div class="challenge-item">
+          <div class="challenge-label">Sound Sensor Sensitivity</div>
+          <div class="challenge-text">The KY-038 was extremely sensitive to physical touch — any contact would trigger it as if a loud sound had been detected, while actual claps nearby weren't always recognized. Adjusting the sensitivity threshold alleviated the issue, though not completely.</div>
+        </div>
+        <div class="challenge-item">
+          <div class="challenge-label">Handle Enclosure</div>
+          <div class="challenge-text">Finding a way to package the mechanical components and wiring inside the handle was difficult. 3D-modeled and laser-cut containers were considered. Ultimately, duct tape and cardboard were used — a practical solution that kept the project moving within the course timeline.</div>
+        </div>
+        <div class="challenge-item">
+          <div class="challenge-label">Future Improvements</div>
+          <div class="challenge-text">A production version would replace duct tape and cardboard with a properly designed 3D-printed enclosure, use higher-torque motors, and implement more robust sound detection using machine learning to reliably distinguish claps from ambient noise.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Executive Summary -->
+  <section class="case-study-section reveal" id="section-summary">
+    <div class="cs-intro">
+      <div class="section-label">Executive Summary</div>
+      <h2>The project in <em>brief</em></h2>
+    </div>
+    <div class="cs-two-col">
+      <div>
+        <p class="cs-body">SmartBrella is an accessibility-driven physical computing project — an automated umbrella that opens and closes via sound recognition (a clap) and Bluetooth smartphone control. Built by a four-person team over one semester for NYU Tandon's EG1003 course, SmartBrella combines mechanical engineering, Arduino programming, and app design into a single functional prototype.</p>
+        <p class="cs-body">The central design question was: <em>how do you make the simplest everyday action — opening an umbrella — accessible to people who lack the strength or dexterity to do it manually?</em> The answer was a dual-input system: sound recognition for hands-free use, and a Bluetooth companion app for more controlled situations.</p>
+        <div class="cs-callout">
+          <p><strong>Core Thesis:</strong> Assistive technology doesn't need to be medical-grade or expensive to make a real difference. Combining off-the-shelf components with thoughtful engineering can make everyday objects accessible to people who currently can't use them.</p>
+        </div>
+      </div>
+      <div class="cs-findings">
+        <div class="cs-finding">
+          <div class="cs-finding-label">The Need</div>
+          <div class="cs-finding-text">15% of the world's population has a disability. Umbrellas require significant grip strength and dexterity — a genuine barrier for amputees, people with Parkinson's disease, or vision impairment.</div>
+        </div>
+        <div class="cs-finding">
+          <div class="cs-finding-label">My Contribution</div>
+          <div class="cs-finding-text">Project Manager — led team scheduling and task distribution. Programmer — wrote the Arduino code and wired the Bluetooth module, establishing the first successful phone connection on April 21.</div>
+        </div>
+        <div class="cs-finding">
+          <div class="cs-finding-label">The Result</div>
+          <div class="cs-finding-text">A working prototype that opens and closes via clap detection and Bluetooth app commands — demonstrated live with the video above. Presented as a final project with full design documentation.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The App -->
+  <section class="case-app" id="section-app">
+    <div class="app-inner">
+      <div class="reveal">
+        <div class="section-label">The App</div>
+        <h2 class="app-heading">Ease of <em>access</em>,<br>in your pocket</h2>
+        <p class="app-text">The SmartBrella companion app extends the umbrella's functionality beyond sound recognition — giving users a smartphone interface to control it remotely, check weather conditions, and receive proactive reminders.</p>
+        <p class="app-text">Designed in Figma and connected to the umbrella via the Bluefruit Bluetooth chip, the app sends open and close commands wirelessly. It also integrates with weather APIs to alert users when rain is forecast — so you never leave home without your umbrella again.</p>
+        <div class="app-features">
+          <div class="app-feature">
+            <div class="app-feature-icon">📱</div>
+            <div class="app-feature-text"><strong>Remote Open/Close</strong> — Control the umbrella with a button tap, no voice command required</div>
+          </div>
+          <div class="app-feature">
+            <div class="app-feature-icon">🌧️</div>
+            <div class="app-feature-text"><strong>Weather Reminders</strong> — Connects to weather APIs and alerts you to bring your umbrella when rain is predicted</div>
+          </div>
+          <div class="app-feature">
+            <div class="app-feature-icon">📡</div>
+            <div class="app-feature-text"><strong>Bluetooth Pairing</strong> — Pairs directly with SmartBrella's Bluefruit module for reliable, low-latency connection</div>
+          </div>
+        </div>
+        <a href="https://www.figma.com/proto/2PnL73tecnMFILxmvDuiGY/RAD?type=design&node-id=141-10&t=jbtQ4SWMAmZu8ZnJ-1&scaling=scale-down&page-id=119%3A16&starting-point-node-id=141%3A10&mode=design" target="_blank" class="app-proto-btn">▶ View App Prototype ↗</a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Final Product Demo Video -->
+  <div id="section-demo" style="border-top: 1px solid var(--border);" class="reveal">
+    <div style="padding: 48px 56px 24px; display: flex; align-items: center; gap: 12px;">
+      <span style="width:20px;height:1px;background:var(--accent);display:inline-block;"></span>
+      <span style="font-size:0.72rem;font-weight:400;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);">Final Product</span>
+    </div>
+    <div style="padding: 0 56px 32px;">
+      <p style="font-family:'Playfair Display',serif;font-size:clamp(1.8rem,2.5vw,2.4rem);font-weight:300;color:var(--white);line-height:1.2;">It actually <em style="font-style:italic;color:var(--accent)">works</em></p>
+      <p style="font-size:1.05rem;font-weight:300;color:var(--text-secondary);line-height:1.85;margin-top:12px;max-width:640px;">Watch the umbrella open automatically on the first clap, then close again on a second clap — the full sound recognition and motor pulley system working together.</p>
+    </div>
+    <video controls playsinline style="width:100%;display:block;max-height:680px;object-fit:contain;background:#000;">
+      <source src="videos/Smartbrella.mov" type="video/mp4">
+    </video>
+    <div style="padding:16px 56px;font-size:0.85rem;letter-spacing:0.08em;color:var(--text-tertiary);border-bottom:1px solid var(--border);">SmartBrella demo — clap to open, clap again to close</div>
+  </div>
+
+  <!-- Next Steps -->
+  <section class="case-study-section" id="section-recommendations">
+    <div class="cs-intro reveal">
+      <div class="section-label">Next Steps</div>
+      <h2>Evaluation &amp; <em>version 2.0</em></h2>
+      <p>An honest look at what SmartBrella achieved, where it fell short, and what a second iteration would fix.</p>
+    </div>
+
+    <!-- Subsection: What Worked -->
+    <div class="cs-sub-label reveal">What worked</div>
+    <div class="cs-rec-grid reveal">
+      <div class="cs-rec">
+        <div class="cs-rec-num">↑</div>
+        <div class="cs-rec-title">Dual Input System</div>
+        <div class="cs-rec-text">Having both sound recognition and Bluetooth control meant the umbrella remained usable even when one input failed — a redundancy that proved essential given the sound sensor's inconsistency.</div>
+      </div>
+      <div class="cs-rec">
+        <div class="cs-rec-num">↑</div>
+        <div class="cs-rec-title">Bluetooth Integration</div>
+        <div class="cs-rec-text">The Bluefruit LE module connected reliably to the companion app. The Open/Close/Weather interface was clean and functional — a strong foundation for a real product's control layer.</div>
+      </div>
+      <div class="cs-rec">
+        <div class="cs-rec-num">↑</div>
+        <div class="cs-rec-title">Team Execution</div>
+        <div class="cs-rec-text">Weekly meetings, clear task distribution by skill, and a documented engineering notebook kept the project on track across a complex multi-workstream build.</div>
+      </div>
+    </div>
+
+    <!-- Subsection: What Needs Work -->
+    <div class="cs-sub-label reveal">What needs work</div>
+    <div class="cs-rec-grid reveal">
+      <div class="cs-rec">
+        <div class="cs-rec-num">→</div>
+        <div class="cs-rec-title">Motor Torque</div>
+        <div class="cs-rec-text">The two-motor solution worked but was a workaround. A production version would use a single higher-torque motor, reducing mechanical complexity and failure points.</div>
+      </div>
+      <div class="cs-rec">
+        <div class="cs-rec-num">→</div>
+        <div class="cs-rec-title">Sound Reliability</div>
+        <div class="cs-rec-text">The KY-038 was inconsistent — sensitive to touch, less sensitive to actual claps. This is the biggest reliability gap and the first thing to address in a next iteration.</div>
+      </div>
+      <div class="cs-rec">
+        <div class="cs-rec-num">→</div>
+        <div class="cs-rec-title">Physical Packaging</div>
+        <div class="cs-rec-text">Duct tape and cardboard worked as a functional enclosure but wouldn't survive regular use. A 3D-printed handle remains the right next step for durability.</div>
+      </div>
+    </div>
+
+    <!-- Subsection: Version 2.0 -->
+    <div class="cs-sub-label reveal">Version 2.0</div>
+    <div class="cs-two-col reveal">
+      <div class="cs-findings">
+        <div class="cs-finding">
+          <div class="cs-finding-label">01 — ML Sound Detection</div>
+          <div class="cs-finding-text">Replace the KY-038 with a microphone running a trained ML model (e.g., TensorFlow Lite) that reliably distinguishes claps from ambient noise — transforming the most unreliable component into the most robust one.</div>
+        </div>
+        <div class="cs-finding">
+          <div class="cs-finding-label">02 — 3D-Printed Enclosure</div>
+          <div class="cs-finding-text">Design and print a proper handle enclosure that integrates the electronics cleanly. The CAD models already exist — a second-semester iteration would complete this step.</div>
+        </div>
+        <div class="cs-finding">
+          <div class="cs-finding-label">03 — Real-Time Weather API</div>
+          <div class="cs-finding-text">Connect the app's weather feature to a live API so rain reminders are triggered by real forecast data — completing the full intended functionality rather than just demonstrating the UI.</div>
+        </div>
+      </div>
+      <div>
+        <p class="cs-body">SmartBrella proved that accessibility-focused engineering doesn't require specialized hardware or large budgets. The entire prototype was built from off-the-shelf components for under $100 — the barrier to assistive technology is design and engineering effort, not cost.</p>
+        <div class="cs-callout">
+          <p><strong>Key Takeaway:</strong> A working prototype that does 80% of what you intended is more valuable than a perfect design that never ships. SmartBrella opens and closes on a clap. That works. Everything else is version 2.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Explore -->
+  <section class="case-links" id="section-explore">
+    <div style="opacity:1;transform:none;">
+      <div class="section-label">Explore</div>
+      <h2 class="links-heading">Read the full<br><em>documentation</em></h2>
+      <p class="links-sub">SmartBrella is fully documented — from the preliminary design report through the final design submission and app prototype.</p>
+      <div class="link-list">
+        <div role="button" tabindex="0" class="link-item"
+          onclick="window.open('https://www.figma.com/proto/2PnL73tecnMFILxmvDuiGY/RAD?type=design&node-id=141-10&t=jbtQ4SWMAmZu8ZnJ-1&scaling=scale-down&page-id=119%3A16&starting-point-node-id=141%3A10&mode=design','_blank')"
+          onkeydown="if(event.key==='Enter')window.open('https://www.figma.com/proto/2PnL73tecnMFILxmvDuiGY/RAD?type=design&node-id=141-10&t=jbtQ4SWMAmZu8ZnJ-1&scaling=scale-down&page-id=119%3A16&starting-point-node-id=141%3A10&mode=design','_blank')">
+          <div class="link-item-left">
+            <span class="link-item-title">App Prototype</span>
+            <span class="link-item-desc">Figma — SmartBrella companion app prototype</span>
+          </div>
+          <span class="link-arrow">↗</span>
+        </div>
+        <div role="button" tabindex="0" class="link-item"
+          onclick="window.open('pdf/PDI.pdf','_blank')"
+          onkeydown="if(event.key==='Enter')window.open('pdf/PDI.pdf','_blank')">
+          <div class="link-item-left">
+            <span class="link-item-title">Preliminary Design Report</span>
+            <span class="link-item-desc">PDF — initial concept, goals, and proposed approach</span>
+          </div>
+          <span class="link-arrow">↗</span>
+        </div>
+        <div role="button" tabindex="0" class="link-item"
+          onclick="window.open('pdf/Final_Design_Report.pdf','_blank')"
+          onkeydown="if(event.key==='Enter')window.open('pdf/Final_Design_Report.pdf','_blank')">
+          <div class="link-item-left">
+            <span class="link-item-title">Final Design Report</span>
+            <span class="link-item-desc">PDF — complete technical documentation of the final prototype</span>
+          </div>
+          <span class="link-arrow">↗</span>
+        </div>
+      </div>
+    </div>
+    <div style="opacity:1;transform:none;">
+      <div class="section-label">Deliverables</div>
+      <div class="deliverables">
+        <div class="deliverable-item">
+          <div class="deliverable-label">Physical Prototype</div>
+          <div class="deliverable-value">Fully functional smart umbrella — sound-activated open/close via clap detection and motor pulley system</div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-label">Arduino Code</div>
+          <div class="deliverable-value">Written in Arduino IDE using Adafruit BLE library — handles sound detection, motor direction logic, and Bluetooth commands</div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-label">Companion App</div>
+          <div class="deliverable-value">Figma prototype with remote open/close control, Bluetooth pairing, and weather API integration for rain reminders</div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-label">CAD Design</div>
+          <div class="deliverable-value">Computer-Aided Design files for mechanical components and handle enclosure planning</div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-label">Documentation</div>
+          <div class="deliverable-value">Preliminary Design Report and Final Design Report covering the full project from concept to working prototype</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Next — loops back to first project -->
+  <section class="case-next reveal">
+    <div>
+      <div class="next-label">Back to the Beginning</div>
+      <a href="NomNom.html" class="next-title" onclick="window.location.href='NomNom.html';return false;">Nom<em style="font-style:italic;color:var(--accent)">Nom</em> Brand</a>
+    </div>
+    <span class="next-arrow">→</span>
+  </section>
+
+  <footer>
+    <span>© 2025 Erica Wang</span>
+    <span>UI/UX Designer & Frontend Developer — New York</span>
+  </footer>
+
+</div>
+
+<script>
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  });
+  (function animRing() {
+    rx += (mx - rx) * 0.35; ry += (my - ry) * 0.35;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  })();
+  document.querySelectorAll('a, button, .process-step, .comp-block, .stat-card, .app-feature, .deliverable-item, .challenge-item, .link-item, [role="button"]').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.classList.add('big'); ring.classList.add('big'); });
+    el.addEventListener('mouseleave', () => { cursor.classList.remove('big'); ring.classList.remove('big'); });
+  });
+
+  const navEl = document.getElementById('nav');
+  let lastScrollY = 0;
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY;
+    navEl.classList.toggle('scrolled', scrollY > 40);
+    if (scrollY > lastScrollY && scrollY > 80) navEl.classList.add('hidden');
+    else navEl.classList.remove('hidden');
+    lastScrollY = scrollY;
+  });
+
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  const snavItems = document.querySelectorAll('.section-nav-item');
+  const sections = ['section-overview','section-goal','section-process','section-components','section-challenges','section-summary','section-app','section-recommendations','section-explore']
+    .map(id => document.getElementById(id)).filter(Boolean);
+  const snavObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        snavItems.forEach(item => item.classList.remove('active'));
+        const active = document.querySelector(`.section-nav-item[data-section="${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.25 });
+  sections.forEach(s => snavObserver.observe(s));
+  document.querySelectorAll('.section-nav-item').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+
+</body>
+</html>

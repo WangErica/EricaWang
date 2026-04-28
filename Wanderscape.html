@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WanderScape — Erica Wang</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0e0f0e; --bg2: #141614; --white: #f2f4f1;
+      --text-primary: rgba(242,244,241,0.88); --text-secondary: rgba(242,244,241,0.65);
+      --text-tertiary: rgba(242,244,241,0.38);
+      --accent: #7ab898; --accent-dim: rgba(122,184,152,0.15); --border: rgba(242,244,241,0.1);
+    }
+    html, body { width: 100%; background: var(--bg); color: var(--white); font-family: 'Outfit', sans-serif; overflow-x: hidden; cursor: auto; }
+
+    .cursor { position: fixed; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); transition: width .18s,height .18s; box-shadow: 0 0 8px rgba(122,184,152,0.8); }
+    .cursor-ring { position: fixed; width: 38px; height: 38px; border: 1.5px solid var(--accent); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); opacity: 0.6; transition: opacity .2s; }
+    .cursor.big { width: 18px; height: 18px; }
+    .cursor-ring.big { opacity: 0.25; }
+    body::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 2; opacity: 0.02; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 180px; }
+
+    /* Section Nav */
+    .section-nav { position: fixed; right: 33px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 16px; z-index: 90; align-items: flex-end; pointer-events: none; }
+    .section-nav-item { display: flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; color: var(--text-tertiary); transition: color .25s; pointer-events: auto; }
+    .section-nav-item:hover, .section-nav-item.active { color: var(--accent); }
+    .section-nav-item.active .snav-dot { background: var(--accent); box-shadow: 0 0 6px rgba(122,184,152,0.6); transform: scale(1.4); }
+    .snav-label { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.45; transition: opacity .2s; white-space: nowrap; }
+    .section-nav-item:hover .snav-label, .section-nav-item.active .snav-label { opacity: 1; }
+    .snav-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--text-tertiary); flex-shrink: 0; transition: background .25s, box-shadow .25s, transform .25s; }
+    @media (max-width: 900px) { .section-nav { display: none; } }
+
+    /* Nav */
+    nav#nav { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 28px 56px; z-index: 100; transition: background .3s, border-color .3s, transform .4s ease, opacity .4s ease; }
+    nav#nav.scrolled { background: rgba(14,15,14,0.85); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); }
+    nav#nav.hidden { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 300; letter-spacing: 0.04em; color: var(--white); text-decoration: none; }
+    .nav-logo span { color: var(--accent); font-style: italic; }
+    .nav-links { display: flex; gap: 36px; align-items: center; }
+    .nav-links a { color: var(--text-tertiary); text-decoration: none; font-size: 0.78rem; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; transition: color .2s; }
+    .nav-links a:hover { color: var(--white); }
+    .nav-links .resume-btn { border: 1px solid var(--border); padding: 8px 18px; border-radius: 2px; transition: border-color .2s, color .2s; }
+    .nav-links .resume-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .page { position: relative; z-index: 1; }
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease;  }
+    .reveal.visible { opacity: 1; transform: translateY(0);  }
+    .reveal a, .reveal button { pointer-events: auto; }
+    .section-label { font-size: 0.72rem; font-weight: 400; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 28px; display: flex; align-items: center; gap: 12px; }
+    .section-label::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Hero */
+    .case-hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 56px 80px; position: relative; overflow: hidden; background: var(--bg); }
+    .case-hero::before { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(ellipse 70% 55% at 65% 30%, rgba(122,184,152,0.1) 0%, transparent 65%), radial-gradient(ellipse 40% 40% at 20% 70%, rgba(56,217,255,0.06) 0%, transparent 55%), radial-gradient(ellipse 50% 40% at 80% 80%, rgba(122,184,152,0.05) 0%, transparent 50%); }
+    .case-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; opacity: 0.15; pointer-events: none; }
+    .case-hero-content { position: relative; z-index: 2; max-width: 900px; }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-tertiary); text-decoration: none; transition: color .2s; margin-bottom: 48px; position: relative; z-index: 3; cursor: pointer; pointer-events: auto !important; }
+    .back-link:hover { color: var(--accent); }
+    .back-link::before { content: '←'; font-size: 0.9rem; }
+    .case-eyebrow { font-size: 0.72rem; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 12px; opacity: 0; animation: fadeUp .7s ease .2s forwards; }
+    .case-eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--accent); }
+    .case-title { font-family: 'Playfair Display', serif; font-size: clamp(3rem, 7vw, 6.5rem); font-weight: 700; line-height: 1.0; letter-spacing: -0.02em; margin-bottom: 28px; opacity: 0; animation: fadeUp .7s ease .35s forwards; }
+    .case-title em { font-style: italic; color: var(--accent); }
+    .case-hero-meta { display: flex; gap: 48px; flex-wrap: wrap; opacity: 0; animation: fadeUp .7s ease .55s forwards; }
+    .meta-item { display: flex; flex-direction: column; gap: 4px; }
+    .meta-label { font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); }
+    .meta-value { font-size: 0.9rem; font-weight: 300; color: var(--text-primary); }
+
+    /* Overview */
+    .case-overview { padding: 100px 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; border-top: 1px solid var(--border); }
+    .overview-heading { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 3vw, 2.8rem); font-weight: 300; line-height: 1.2; margin-bottom: 24px; }
+    .overview-heading em { font-style: italic; color: var(--accent); }
+    .overview-text { font-size: 1.05rem; font-weight: 300; color: var(--text-primary); line-height: 1.9; }
+    .overview-text + .overview-text { margin-top: 14px; }
+    .stat-row { padding: 20px 0; border-bottom: 1px solid var(--border); }
+    .stat-row:first-child { border-top: 1px solid var(--border); }
+    .stat-label { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 6px; }
+    .stat-value { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 300; color: var(--white); }
+    .stat-sub { font-size: 0.9rem; font-weight: 300; color: var(--text-secondary); margin-top: 4px; line-height: 1.55; }
+
+    /* Research */
+    .case-research { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .research-intro { max-width: 640px; margin-bottom: 56px; }
+    .research-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .research-intro h2 em { font-style: italic; color: var(--accent); }
+    .research-intro p { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .research-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+    .research-card { padding: 32px 28px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .research-card:hover { border-color: rgba(122,184,152,0.35); }
+    .research-card-label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+    .research-card h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 300; color: var(--white); margin-bottom: 12px; line-height: 1.3; }
+    .research-card p { font-size: 0.95rem; font-weight: 300; color: var(--text-secondary); line-height: 1.7; }
+    .insight-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 2px; }
+    .insight-item { padding: 24px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .insight-item:hover { border-color: rgba(122,184,152,0.35); }
+    .insight-num { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+    .insight-text { font-size: 0.95rem; font-weight: 300; color: var(--text-primary); line-height: 1.65; }
+
+    /* Process */
+    .case-process { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .process-intro { max-width: 640px; margin-bottom: 64px; }
+    .process-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .process-intro h2 em { font-style: italic; color: var(--accent); }
+    .process-intro p { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .process-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
+    .process-step { padding: 32px 24px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .process-step:hover { border-color: rgba(122,184,152,0.35); }
+    .step-num { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 700; color: rgba(122,184,152,0.15); line-height: 1; margin-bottom: 16px; }
+    .step-title { font-size: 0.88rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--white); margin-bottom: 10px; }
+    .step-desc { font-size: 0.95rem; font-weight: 300; color: var(--text-secondary); line-height: 1.75; }
+
+    /* Prototype preview card */
+    .case-prototype { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .prototype-intro { max-width: 640px; margin-bottom: 48px; }
+    .prototype-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .prototype-intro h2 em { font-style: italic; color: var(--accent); }
+    .prototype-intro p { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+
+    .proto-preview {
+      border: 1px solid var(--border); border-radius: 4px;
+      background: var(--bg2); overflow: hidden;
+      transition: border-color .25s, transform .25s;
+      cursor: pointer !important; pointer-events: auto !important;
+      user-select: none; -webkit-user-select: none;
+    }
+    .proto-preview:hover { border-color: rgba(122,184,152,0.5); transform: translateY(-2px); }
+    .proto-preview-inner {
+      display: grid; grid-template-columns: 260px 1fr;
+      align-items: center; gap: 0;
+    }
+    .proto-phone-mockup {
+      background: #0a0b0a; display: flex; align-items: center;
+      justify-content: center; padding: 40px 32px; min-height: 280px;
+    }
+    .proto-phone-frame { width: 130px; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.6)); }
+    .proto-preview-text { padding: 48px 56px; }
+    .proto-preview-label { font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+    .proto-preview-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 300; color: var(--white); margin-bottom: 16px; line-height: 1.2; }
+    .proto-preview-desc { font-size: 0.95rem; font-weight: 300; color: var(--text-secondary); line-height: 1.7; margin-bottom: 32px; max-width: 400px; }
+    .proto-launch-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 12px 24px; border: 1px solid var(--accent);
+      border-radius: 2px; font-size: 0.82rem; font-weight: 400;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent);
+      transition: background .2s, color .2s;
+    }
+    .proto-preview:hover .proto-launch-btn { background: var(--accent); color: var(--bg); }
+
+    /* Fullscreen prototype modal */
+    .proto-modal {
+      display: none; position: fixed; inset: 0; z-index: 600;
+      background: #000; flex-direction: column;
+      cursor: auto !important;
+    }
+    .proto-modal.open { display: flex; }
+    .proto-modal-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 24px; background: #111; border-bottom: 1px solid #222;
+      flex-shrink: 0; cursor: auto;
+    }
+    .proto-modal-title { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+    .proto-modal-actions { display: flex; align-items: center; gap: 12px; }
+    .proto-external-btn {
+      font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: rgba(255,255,255,0.5); text-decoration: none; padding: 6px 14px;
+      border: 1px solid #333; border-radius: 2px; transition: color .2s, border-color .2s;
+      cursor: pointer !important; pointer-events: auto !important;
+    }
+    .proto-external-btn:hover { color: #7ab898; border-color: #7ab898; }
+    .proto-close-btn {
+      font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: rgba(255,255,255,0.6); background: none; border: 1px solid #333;
+      border-radius: 2px; padding: 6px 14px; transition: color .2s, border-color .2s;
+      cursor: pointer !important; pointer-events: auto !important; font-family: 'Outfit', sans-serif;
+    }
+    .proto-close-btn:hover { color: #fff; border-color: #555; }
+    .proto-modal-frame { flex: 1; display: flex; overflow: hidden; cursor: auto; }
+    .proto-modal-frame iframe { width: 100%; height: 100%; border: none; cursor: auto !important; }
+
+    /* Features */
+    .case-features { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .features-intro { max-width: 640px; margin-bottom: 56px; }
+    .features-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .features-intro h2 em { font-style: italic; color: var(--accent); }
+    .features-intro p { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    .feature-card { padding: 36px 28px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .feature-card:hover { border-color: rgba(122,184,152,0.35); }
+    .feature-icon { font-size: 1.5rem; margin-bottom: 16px; }
+    .feature-name { font-size: 0.88rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--white); margin-bottom: 10px; }
+    .feature-desc { font-size: 0.95rem; font-weight: 300; color: var(--text-secondary); line-height: 1.7; }
+
+    /* Design solutions & feedback */
+    .case-solutions { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .solutions-heading { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 16px; }
+    .solutions-heading em { font-style: italic; color: var(--accent); }
+    .solutions-text { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.9; }
+    .solutions-text + .solutions-text { margin-top: 14px; }
+    .decision-list { display: flex; flex-direction: column; gap: 0; }
+    .decision-item { padding: 22px 0; border-bottom: 1px solid var(--border); }
+    .decision-item:first-child { border-top: 1px solid var(--border); }
+    .decision-label { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+    .decision-text { font-size: 0.95rem; font-weight: 300; color: var(--text-primary); line-height: 1.65; }
+
+    /* Links */
+    .case-links { padding: 100px 56px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; ; cursor: auto; cursor: auto;}
+    .links-heading { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 8px; }
+    .links-heading em { font-style: italic; color: var(--accent); }
+    .links-sub { font-size: 1rem; font-weight: 300; color: var(--text-secondary); line-height: 1.8; margin-bottom: 36px; }
+    .link-list { display: flex; flex-direction: column; }
+        .link-item { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid var(--border); user-select: none; -webkit-user-select: none; transition: padding-left .2s; cursor: pointer !important; pointer-events: auto !important; position: relative; z-index: 5; }
+    .link-item:first-child { border-top: 1px solid var(--border); }
+    .link-item:hover { padding-left: 10px; background: rgba(122,184,152,0.03); }
+    .link-item-left { display: flex; flex-direction: column; gap: 4px; }
+    .link-item-title { font-size: 1.05rem; font-weight: 400; color: var(--white); transition: color .2s; }
+    .link-item:hover .link-item-title { color: var(--accent); }
+    .link-item-desc { font-size: 0.85rem; font-weight: 300; color: var(--text-tertiary); }
+    .link-arrow { color: var(--accent); opacity: 0; transition: opacity .2s, transform .2s; }
+    .link-item:hover .link-arrow { opacity: 1; transform: translateX(-4px); }
+    .deliverables { display: flex; flex-direction: column; gap: 12px; }
+    .deliverable-item { cursor: default; padding: 20px 24px; border: 1px solid var(--border); border-radius: 2px; background: var(--bg2); transition: border-color .25s; }
+    .deliverable-item:hover { border-color: rgba(122,184,152,0.3); }
+    .deliverable-label { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 6px; }
+    .deliverable-value { font-size: 0.95rem; font-weight: 300; color: var(--text-primary); line-height: 1.55; }
+
+    /* Next */
+    .case-next { padding: 80px 56px 100px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-end; }
+    .next-label { font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 12px; }
+    .next-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 300; line-height: 1.1; color: var(--white); text-decoration: none; display: block; transition: color .2s; pointer-events: auto; }
+    .next-title:hover { color: var(--accent); }
+    .next-arrow { font-size: 2rem; color: var(--accent); }
+
+    footer { padding: 24px 56px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    footer span { font-size: 0.72rem; color: var(--text-tertiary); letter-spacing: 0.06em; }
+
+    @media (max-width: 1280px) {
+      nav, footer { padding: 24px 40px; }
+      .case-hero { padding: 0 40px 64px; }
+      .case-overview, .case-research, .case-process, .case-features, .case-solutions, .case-links, .case-prototype { padding: 80px 40px; }
+      .case-next { padding: 80px 40px; }
+      .proto-preview-text { padding: 40px; }
+    }
+    @media (max-width: 900px) {
+      .case-overview, .case-links { grid-template-columns: 1fr; gap: 40px; }
+      .research-grid { grid-template-columns: 1fr; }
+      .insight-row { grid-template-columns: 1fr 1fr; }
+      .process-steps { grid-template-columns: 1fr 1fr; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .proto-preview-inner { grid-template-columns: 1fr; }
+      .proto-phone-mockup { min-height: 160px; padding: 28px; }
+      .proto-preview-text { padding: 32px; }
+    }
+    @media (max-width: 640px) {
+      .cursor, .cursor-ring { display: none; } body { cursor: auto; }
+      nav { padding: 20px 24px; } .nav-links { gap: 20px; }
+      .case-hero { padding: 0 24px 48px; } .case-hero-meta { gap: 24px; }
+      .case-overview, .case-research, .case-process, .case-features, .case-solutions, .case-links, .case-prototype { padding: 60px 24px; }
+      .process-steps, .features-grid, .insight-row { grid-template-columns: 1fr; }
+      .case-next { padding: 60px 24px 80px; flex-direction: column; align-items: flex-start; gap: 16px; }
+      footer { padding: 20px 24px; flex-direction: column; gap: 8px; text-align: center; }
+      .proto-preview-title { font-size: 1.4rem; }
+    }
+  
+    /* ── Cursor Fix: body uses auto so browser hit-testing works fully.
+       Custom JS cursor still renders on top. Only suppress native cursor
+       on non-interactive surface elements. ── */
+    .page, .case-hero, .case-overview, .case-process,
+    .case-gallery, .case-next, footer,
+    .case-values, .case-mark, .case-colors, .case-type,
+    .case-research, .case-features, .case-solutions,
+    .case-prototype, .case-decisions, .case-problem,
+    .case-arch { cursor: none; }
+    a, button, [role="button"], div.link-item,
+    .process-step, .feature-card, .value-card,
+    .insight-item, .decision-item, .research-card,
+    .deliverable-item, .arch-card, .swatch,
+    .nav-links a, .nav-logo, .back-link,
+    .next-title, .section-nav-item, .pdf-open-btn,
+    .pdf-btn, .pdf-close, .arch-site-link { cursor: pointer !important; pointer-events: auto !important; }
+    iframe { cursor: auto !important; pointer-events: auto !important; }
+    @media (max-width: 640px) { .cursor, .cursor-ring { display: none; } body { cursor: auto !important; } }
+
+    /* ── Case Study Depth ── */
+    .case-study-section { padding: 100px 56px; border-top: 1px solid var(--border); }
+    .cs-intro { max-width: 640px; margin-bottom: 56px; }
+    .cs-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem,2.5vw,2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .cs-intro h2 em { font-style: italic; color: var(--accent); }
+    .cs-intro p { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .cs-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+    .cs-body { font-size: 1.05rem; font-weight: 300; color: var(--text-primary); line-height: 1.9; }
+    .cs-body + .cs-body { margin-top: 14px; }
+    .cs-callout { padding: 28px 32px; border-left: 3px solid var(--accent); background: var(--bg2); margin-top: 32px; border-radius: 0 2px 2px 0; }
+    .cs-callout p { font-size: 1rem; font-weight: 300; color: var(--text-primary); line-height: 1.8; }
+    .cs-callout strong { color: var(--accent); font-weight: 500; }
+    .cs-findings { display: flex; flex-direction: column; gap: 2px; }
+    .cs-finding { padding: 22px 24px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .cs-finding:hover { border-color: rgba(122,184,152,0.35); }
+    .cs-finding-label { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+    .cs-finding-text { font-size: 0.95rem; font-weight: 300; color: var(--text-primary); line-height: 1.65; }
+    .cs-rec-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+    .cs-rec { padding: 28px 24px; border: 1px solid var(--border); background: var(--bg2); transition: border-color .25s; }
+    .cs-rec:hover { border-color: rgba(122,184,152,0.35); }
+    .cs-rec-num { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 700; color: rgba(122,184,152,0.15); line-height: 1; margin-bottom: 12px; }
+    .cs-rec-title { font-size: 0.85rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--white); margin-bottom: 8px; }
+    .cs-rec-text { font-size: 0.93rem; font-weight: 300; color: var(--text-secondary); line-height: 1.65; }
+    @media (max-width: 1280px) { .case-study-section { padding: 80px 40px; } }
+    @media (max-width: 900px) { .cs-two-col { grid-template-columns: 1fr; gap: 40px; } .cs-rec-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px) { .case-study-section { padding: 60px 24px; } .cs-rec-grid { grid-template-columns: 1fr; } }
+
+    /* ── App Screen Gallery ── */
+    .screen-showcase { margin-top: 64px; width: 100%; }
+    .screen-showcase-label { font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+    .screen-showcase-label::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+    .screen-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; width: 100%; }
+    .screen-card { padding: 0; border: 1px solid var(--border); background: var(--bg2); overflow: hidden; transition: border-color .25s; display: flex; flex-direction: column; }
+    .screen-card:hover { border-color: rgba(122,184,152,0.4); }
+    .screen-card img { width: 100%; height: 260px; object-fit: cover; object-position: top; display: block; transition: transform .4s ease, opacity .3s; opacity: 0.9; }
+    .screen-card:hover img { transform: scale(1.02); opacity: 1; }
+    .screen-card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+    .screen-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 300; color: var(--white); margin-bottom: 8px; }
+    .screen-caption { font-size: 0.82rem; font-weight: 300; color: var(--text-secondary); line-height: 1.55; }
+    @media (max-width: 900px) { .screen-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 640px) { .screen-grid { grid-template-columns: 1fr 1fr; } }
+
+    /* ── App Screen Gallery ── */
+    .screen-showcase { margin-top: 64px; width: 100%; }
+    .screen-showcase-label { font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+    .screen-showcase-label::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+    .screen-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; width: 100%; }
+    .screen-card { border: 1px solid var(--border); background: var(--bg2); overflow: hidden; transition: border-color .25s; display: flex; flex-direction: column; }
+    .screen-card:hover { border-color: rgba(122,184,152,0.4); }
+    .screen-card img { width: 100%; height: 260px; object-fit: cover; object-position: top; display: block; transition: transform .4s ease, opacity .3s; opacity: 0.9; }
+    .screen-card:hover img { transform: scale(1.02); opacity: 1; }
+    .screen-card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+    .screen-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 300; color: var(--white); margin-bottom: 8px; }
+    .screen-caption { font-size: 0.82rem; font-weight: 300; color: var(--text-secondary); line-height: 1.55; }
+    @media (max-width: 900px) { .screen-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 640px) { .screen-grid { grid-template-columns: 1fr 1fr; } }
+
+    /* Research card internals */
+    .research-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 700; line-height: 1;
+      color: var(--accent); margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+    .research-label {
+      font-size: 0.75rem; font-weight: 500; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--white); margin-bottom: 8px;
+    }
+    .research-desc {
+      font-size: 0.95rem; font-weight: 300;
+      color: var(--text-secondary); line-height: 1.7;
+    }
+    .competitive-label {
+      font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--text-tertiary); margin: 56px 0 20px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .competitive-label::before { content: ''; width: 20px; height: 1px; background: var(--text-tertiary); }
+    /* Insight items */
+    .insight-label {
+      font-size: 0.72rem; font-weight: 500; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+    }
+
+    /* Design Solutions redesign */
+    .solutions-intro { max-width: 640px; margin-bottom: 56px; }
+    .solutions-intro h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem,2.5vw,2.4rem); font-weight: 300; line-height: 1.2; margin-bottom: 12px; }
+    .solutions-intro h2 em { font-style: italic; color: var(--accent); }
+    .solutions-intro p { font-size: 1.05rem; font-weight: 300; color: var(--text-secondary); line-height: 1.85; }
+    .solutions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; }
+    .solution-card { background: var(--bg2); border: 1px solid var(--border); padding: 36px 32px; transition: border-color .25s; }
+    .solution-card:hover { border-color: rgba(122,184,152,0.4); }
+    .solution-num { font-family: 'Playfair Display', serif; font-size: 3rem; font-weight: 700; color: rgba(122,184,152,0.12); line-height: 1; margin-bottom: 20px; }
+    .solution-from { font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .solution-from::before { content: ''; width: 12px; height: 1px; background: var(--text-tertiary); }
+    .solution-finding { font-size: 0.95rem; font-weight: 400; color: var(--text-secondary); line-height: 1.55; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border); font-style: italic; }
+    .solution-to { font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .solution-to::before { content: ''; width: 12px; height: 1px; background: var(--accent); }
+    .solution-decision { font-size: 0.95rem; font-weight: 300; color: var(--text-primary); line-height: 1.65; }
+    @media (max-width: 768px) { .solutions-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<div class="page">
+
+  <!-- Section Nav -->
+  <nav class="section-nav" id="sectionNav">
+    <a href="#section-overview" class="section-nav-item" data-section="section-overview"><span class="snav-label">Overview</span><span class="snav-dot"></span></a>
+    <a href="#section-research" class="section-nav-item" data-section="section-research"><span class="snav-label">Research</span><span class="snav-dot"></span></a>
+    <a href="#section-process" class="section-nav-item" data-section="section-process"><span class="snav-label">Process</span><span class="snav-dot"></span></a>
+    <a href="#section-prototype" class="section-nav-item" data-section="section-prototype"><span class="snav-label">Prototype</span><span class="snav-dot"></span></a>
+    <a href="#section-summary" class="section-nav-item" data-section="section-summary"><span class="snav-label">Summary</span><span class="snav-dot"></span></a>
+    <a href="#section-recommendations" class="section-nav-item" data-section="section-recommendations"><span class="snav-label">Recommendations</span><span class="snav-dot"></span></a>
+    <a href="#section-features" class="section-nav-item" data-section="section-features"><span class="snav-label">Features</span><span class="snav-dot"></span></a>
+    <a href="#section-solutions" class="section-nav-item" data-section="section-solutions"><span class="snav-label">Design Solutions</span><span class="snav-dot"></span></a>
+    <a href="#section-explore" class="section-nav-item" data-section="section-explore"><span class="snav-label">Explore</span><span class="snav-dot"></span></a>
+  </nav>
+
+  <!-- Nav -->
+  <nav id="nav">
+    <a href="index.html" class="nav-logo" onclick="window.location.href='index.html';return false;">Erica <span>Wang</span></a>
+    <div class="nav-links">
+      <a href="index.html#work" onclick="window.location.href='index.html#work';return false;">Work</a>
+      <a href="index.html#about" onclick="window.location.href='index.html#about';return false;">About</a>
+      <a href="pdf/Erica_Wang_Resume.pdf" target="_blank" class="resume-btn">Resume ↗</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="case-hero">
+    <div class="case-hero-content">
+      <a href="CoT.html" class="back-link" style="cursor:pointer!important;pointer-events:auto!important;z-index:20;position:relative;" onclick="window.location.href='CoT.html';return false;">City of Tomorrow</a>
+      <div class="case-eyebrow">UX Research & App Design — Fall 2024</div>
+      <h1 class="case-title">Wander<em>Scape</em></h1>
+      <div class="case-hero-meta">
+        <div class="meta-item"><span class="meta-label">Role</span><span class="meta-value">UX Researcher & Designer</span></div>
+        <div class="meta-item"><span class="meta-label">Duration</span><span class="meta-value">1 Month 3 Weeks</span></div>
+        <div class="meta-item"><span class="meta-label">Tools</span><span class="meta-value">Figma · Research Methods</span></div>
+        <div class="meta-item"><span class="meta-label">Type</span><span class="meta-value">Mobile App — UX Design</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Overview -->
+  <section class="case-overview" id="section-overview">
+    <div class="reveal">
+      <div class="section-label">Overview</div>
+      <h2 class="overview-heading">Helping travelers find<br>what <em>TripAdvisor</em> misses</h2>
+      <p class="overview-text">WanderScape is a UX research-led mobile app designed to help travelers discover authentic local experiences beyond the typical tourist trail. The project followed a complete UX process — from surveys and user interviews through competitive analysis, wireframing, high-fidelity design in Figma, and usability testing.</p>
+      <p class="overview-text">The core insight: popular travel apps create a feedback loop that makes tourism more homogeneous. By surfacing local-guide recommendations, community-sourced spots, and category-based search instead of popularity rankings, WanderScape gives travelers the tools to find the real version of a place.</p>
+    </div>
+    <div class="reveal">
+      <div class="stat-row">
+        <div class="stat-label">Problem</div>
+        <div class="stat-value">Mainstream apps push the same spots</div>
+        <div class="stat-sub">Existing platforms surface the same popular destinations to every visitor, crowding out authentic local experiences</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-label">Solution</div>
+        <div class="stat-value">4-tab app built on real user research</div>
+        <div class="stat-sub">Explore, Wishlist, Map, and Profile — each designed around a distinct phase of traveler behavior</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-label">Outcome</div>
+        <div class="stat-value">High-Fidelity Figma Prototype</div>
+        <div class="stat-sub">Iterated from usability testing — calmer blue/white palette replacing oversaturated original colors</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Research -->
+  <section class="case-research" id="section-research">
+    <div class="research-intro reveal">
+      <div class="section-label">Research</div>
+      <h2>What real travelers<br>actually <em>want</em></h2>
+      <p>10 survey respondents and in-depth user interviews revealed patterns that shaped every design decision — from the category filter model to the wishlist empty state.</p>
+    </div>
+    <div class="research-grid">
+      <div class="research-card reveal">
+        <div class="research-num">75%</div>
+        <div class="research-label">Plan Ahead</div>
+        <div class="research-desc">Three quarters of travelers plan trips in advance — validating the wishlist as a core feature, not a nice-to-have.</div>
+      </div>
+      <div class="research-card reveal">
+        <div class="research-num">↑</div>
+        <div class="research-label">Social Inspiration</div>
+        <div class="research-desc">Users find trip inspiration on YouTube, Instagram, TikTok, and Pinterest — visual, story-driven platforms. This shaped the featured card design.</div>
+      </div>
+    </div>
+    <div class="insight-row">
+      <div class="insight-item reveal">
+        <div class="insight-label">Landmark Tours</div>
+        <div class="insight-text">Most-requested experience type — walkable, culturally rich, neighborhood-level exploration</div>
+      </div>
+      <div class="insight-item reveal">
+        <div class="insight-label">Food Tours</div>
+        <div class="insight-text">Second most requested — validating the Food category filter as a primary tab</div>
+      </div>
+      <div class="insight-item reveal">
+        <div class="insight-label">City Walks</div>
+        <div class="insight-text">Self-guided discovery — supporting the Map screen's route-planning utility</div>
+      </div>
+    </div>
+    <div class="competitive-label reveal">Competitive Analysis — GetYourGuide</div>
+    <div class="research-grid">
+      <div class="research-card reveal">
+        <div class="research-num">→</div>
+        <div class="research-label">Gap: Local Discovery</div>
+        <div class="research-desc">GetYourGuide has limited options in less-touristy destinations and leans heavily on European markets — leaving a clear gap for community-sourced, local-first content.</div>
+      </div>
+      <div class="research-card reveal">
+        <div class="research-num">→</div>
+        <div class="research-label">Gap: Personalization</div>
+        <div class="research-desc">Existing platforms rank by popularity, not user preference. WanderScape's onboarding survey and category filters address this directly.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Process -->
+  <section class="case-process" id="section-process">
+    <div class="process-intro reveal">
+      <div class="section-label">Process</div>
+      <h2>From research insight<br>to <em>working prototype</em></h2>
+    </div>
+    <div class="process-steps">
+      <div class="process-step reveal">
+        <div class="step-num">01</div>
+        <div class="step-title">Surveys & Interviews</div>
+        <div class="step-desc">10 participants surveyed on travel habits, inspiration sources, and pain points with existing apps. Interviews uncovered the gap between what people want and what mainstream platforms deliver.</div>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">02</div>
+        <div class="step-title">Competitive Analysis</div>
+        <div class="step-desc">Deep dive into GetYourGuide — identifying gaps in local discovery, market coverage, and personalization. Defined WanderScape's positioning as community-first and locally authentic.</div>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">03</div>
+        <div class="step-title">Wireframes → Hi-Fi</div>
+        <div class="step-desc">Low-fidelity wireframes established the four-tab structure and information hierarchy. Iterated to high-fidelity in Figma — including two full color palette revisions based on usability testing feedback.</div>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">04</div>
+        <div class="step-title">Usability Testing</div>
+        <div class="step-desc">Testing revealed the original colors were too saturated. The final blue-and-white palette was a direct response — proving color affects cognitive load and usability, not just aesthetics.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Prototype -->
+  <section class="case-prototype" id="section-prototype">
+    <div class="prototype-intro reveal">
+      <div class="section-label">Interactive Prototype</div>
+      <h2>Try the full<br><em>WanderScape</em> flow</h2>
+      <p>The complete interactive prototype — from onboarding survey through Explore, Wishlist, Map, and Profile screens. Built in Figma, tested with real users.</p>
+    </div>
+    <div class="proto-preview reveal"
+         role="button" tabindex="0"
+         style="cursor:pointer!important;pointer-events:auto!important;"
+         onclick="openPrototype()"
+         onkeydown="if(event.key==='Enter')openPrototype()">
+      <div class="proto-preview-inner">
+        <div class="proto-phone-mockup">
+          <svg class="proto-phone-frame" viewBox="0 0 120 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="116" height="236" rx="18" fill="#1a1c1a" stroke="rgba(122,184,152,0.3)" stroke-width="1.5"/>
+            <rect x="8" y="14" width="104" height="212" rx="12" fill="#0e0f0e"/>
+            <rect x="42" y="5" width="36" height="7" rx="3.5" fill="#0e0f0e"/>
+            <!-- App UI sketch -->
+            <rect x="14" y="24" width="92" height="28" rx="4" fill="rgba(122,184,152,0.08)"/>
+            <rect x="18" y="31" width="48" height="8" rx="2" fill="rgba(122,184,152,0.25)"/>
+            <rect x="14" y="58" width="92" height="56" rx="4" fill="rgba(122,184,152,0.05)"/>
+            <rect x="18" y="74" width="60" height="6" rx="2" fill="rgba(255,255,255,0.15)"/>
+            <rect x="18" y="84" width="40" height="5" rx="2" fill="rgba(255,255,255,0.08)"/>
+            <rect x="14" y="120" width="44" height="44" rx="4" fill="rgba(122,184,152,0.06)"/>
+            <rect x="62" y="120" width="44" height="44" rx="4" fill="rgba(122,184,152,0.06)"/>
+            <rect x="14" y="170" width="92" height="1" fill="rgba(122,184,152,0.15)"/>
+            <circle cx="30" cy="185" r="6" fill="rgba(122,184,152,0.2)"/>
+            <circle cx="60" cy="185" r="6" fill="rgba(122,184,152,0.08)"/>
+            <circle cx="90" cy="185" r="6" fill="rgba(122,184,152,0.08)"/>
+          </svg>
+        </div>
+        <div class="proto-preview-text">
+          <div class="proto-preview-label">Figma Prototype</div>
+          <div class="proto-preview-title">Launch Interactive<br>Prototype</div>
+          <div class="proto-preview-desc">Explore the full WanderScape app flow — onboarding survey, Explore, Wishlist, Map, and Profile screens. Fully interactive in Figma.</div>
+          <div class="proto-launch-btn">▶ Open Prototype</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Prototype Modal -->
+  <div class="proto-modal" id="protoModal">
+    <div class="proto-modal-bar">
+      <span class="proto-modal-title">WanderScape — Interactive Prototype</span>
+      <div class="proto-modal-actions">
+        <a href="https://embed.figma.com/proto/MY2oAVjLC4H3eMpl0riFA9/WanderScape--UX-Project-?node-id=4-3&scaling=scale-down&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=4%3A3&embed-host=share" target="_blank" class="proto-external-btn" style="cursor:pointer!important;pointer-events:auto!important;">Open in Figma ↗</a>
+        <button class="proto-close-btn" onclick="closePrototype()" style="cursor:pointer!important;pointer-events:auto!important;">✕ Close</button>
+      </div>
+    </div>
+    <div class="proto-modal-frame">
+      <iframe id="protoFrame" src="" title="WanderScape Figma Prototype" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <!-- Executive Summary -->
+  <section class="case-study-section" id="section-summary">
+    <div class="cs-intro reveal">
+      <div class="section-label">Executive Summary</div>
+      <h2>The project in <em>brief</em></h2>
+    </div>
+    <div class="cs-two-col">
+      <div class="reveal">
+        <p class="cs-body">WanderScape is a UX research-led mobile app designed to help travelers discover authentic local experiences beyond the typical tourist trail. The project followed a complete UX process over 1 month and 3 weeks — from surveys and user interviews through competitive analysis, wireframing, high-fidelity design, and usability testing.</p>
+        <p class="cs-body">The core insight driving WanderScape: popular travel apps create a feedback loop that makes tourism more homogeneous, not more personal. By surfacing local-guide recommendations and vibe-based search instead of popularity rankings, WanderScape gives travelers the tools to find the real version of a place.</p>
+        <div class="cs-callout">
+          <p><strong>Core Thesis:</strong> The best UX for travel isn't optimizing for the popular — it's making the authentic discoverable.</p>
+        </div>
+      </div>
+      <div class="cs-findings reveal">
+        <div class="cs-finding">
+          <div class="cs-finding-label">The Problem</div>
+          <div class="cs-finding-text">Mainstream travel apps surface the same popular spots to every visitor — creating a feedback loop that crowds out authentic local experiences.</div>
+        </div>
+        <div class="cs-finding">
+          <div class="cs-finding-label">The Research</div>
+          <div class="cs-finding-text">Surveys and interviews revealed that 75% plan ahead, get inspiration from social media, and want landmark tours, food tours, and city walks — but feel existing apps miss the genuine local side of destinations.</div>
+        </div>
+        <div class="cs-finding">
+          <div class="cs-finding-label">The Solution</div>
+          <div class="cs-finding-text">A four-tab mobile app (Explore, Wishlist, Map, Profile) with category filtering, featured local experiences, and a calmer blue/white visual design iterated from usability testing.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Recommendations -->
+  <section class="case-study-section" id="section-recommendations">
+    <div class="cs-intro reveal">
+      <div class="section-label">Recommendations</div>
+      <h2>What comes <em>next</em></h2>
+      <p>Three directions for WanderScape's next iteration, based on research findings and usability testing.</p>
+    </div>
+    <div class="cs-two-col">
+      <div class="cs-findings reveal">
+        <div class="cs-finding">
+          <div class="cs-finding-label">Recommendation 01 — Local Guide System</div>
+          <div class="cs-finding-text">Build a verified local guide layer where residents can submit and curate recommendations. Trust in recommendations is the biggest barrier to discovery. Local voices beat algorithms.</div>
+        </div>
+        <div class="cs-finding">
+          <div class="cs-finding-label">Recommendation 02 — AI Personalization</div>
+          <div class="cs-finding-text">Implement AI-based Explore feed personalization based on saved wishlist items and browsing patterns — surfacing destinations that match each user's interests rather than generic popularity rankings.</div>
+        </div>
+        <div class="cs-finding">
+          <div class="cs-finding-label">Recommendation 03 — Social Sharing</div>
+          <div class="cs-finding-text">Add wishlist sharing so travelers can share curated lists with friends or publish them publicly. Research showed social platforms are where inspiration starts; WanderScape should be where it lands.</div>
+        </div>
+      </div>
+      <div class="reveal">
+        <p class="cs-body">The most important finding from this project wasn't about features — it was about trust. Users don't distrust travel apps because the information is wrong. They distrust them because the information feels optimized for someone else's interests, not theirs.</p>
+        <div class="cs-callout">
+          <p><strong>Key Takeaway:</strong> The best UX for discovery isn't the most efficient path to a booking — it's the experience that makes a traveler feel like they found something nobody else knows about. That feeling of discovery is the product.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="case-features" id="section-features">
+    <div class="features-intro reveal">
+      <div class="section-label">Key Features</div>
+      <h2>Four screens, <em>one focused</em> experience</h2>
+      <p>WanderScape is organized into four core tabs, each designed to support a distinct phase of how travelers plan and experience a destination — all rooted in what the research revealed about real traveler behavior.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">🔍</div>
+        <div class="feature-name">Explore Screen</div>
+        <div class="feature-desc">A prominent search bar, featured destination cards, and category tabs for Nature, Arts, Food, and Sports. High-quality imagery makes browsing feel exciting and inspiring rather than transactional.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">❤️</div>
+        <div class="feature-name">Wishlist Screen</div>
+        <div class="feature-desc">Clean layout with "My Wishlists" and "Recently Viewed" tabs. Users can create new wishlists from an empty state with a "Start exploring" prompt — addressing the budget planning concern from research.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🗺️</div>
+        <div class="feature-name">Map Screen</div>
+        <div class="feature-desc">Utility-focused with input fields for start and end locations, real-time transportation details, and map previews. Designed for the 75% of travelers who plan ahead and need reliable navigation tools.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">👤</div>
+        <div class="feature-name">Profile Screen</div>
+        <div class="feature-desc">Personal account management and saved preferences — completing the four-tab bottom navigation that keeps all core features within one tap from anywhere in the app.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">📍</div>
+        <div class="feature-name">Category Filtering</div>
+        <div class="feature-desc">Nature, Arts, Food, and Sports filters on the Explore screen let users quickly narrow to what excites them — reflecting the real variety of tour types identified in user interviews.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">✨</div>
+        <div class="feature-name">Featured Experiences</div>
+        <div class="feature-desc">Highlighted destination cards with high-resolution imagery — from the Ellis Island Museum to Zip Aviation helicopter tours — making discovery feel like scrolling a curated travel feed rather than a booking platform.</div>
+      </div>
+    </div>
+
+    <!-- Real App Screens -->
+    <div class="screen-showcase">
+      <div class="screen-showcase-label">App Screens — High Fidelity Prototype</div>
+      <div class="screen-grid">
+        <div class="screen-card reveal">
+          <img src="images/Wanderscape_Homepage.png" alt="WanderScape Explore screen — featured destinations and category tabs" />
+          <div class="screen-card-body">
+            <div class="screen-name">Explore</div>
+            <div class="screen-caption">Featured experiences, category filtering (Nature, Arts, Food), and destination cards — discovery that feels like curated browsing.</div>
+          </div>
+        </div>
+        <div class="screen-card reveal">
+          <img src="images/Wanderscape_Map.png" alt="WanderScape Map screen — route planning with NYC map" />
+          <div class="screen-card-body">
+            <div class="screen-name">Map & Navigation</div>
+            <div class="screen-caption">Route planning with start/end fields and transportation modes — built for the 75% of travelers who plan ahead.</div>
+          </div>
+        </div>
+        <div class="screen-card reveal">
+          <img src="images/Wanderscape_Questionaire.png" alt="WanderScape onboarding — login and personalization survey" />
+          <div class="screen-card-body">
+            <div class="screen-name">Onboarding Survey</div>
+            <div class="screen-caption">4-question personalization survey tailoring the Explore feed from the very first session.</div>
+          </div>
+        </div>
+        <div class="screen-card reveal">
+          <img src="images/Wanderscape_Wishlist.png" alt="WanderScape Wishlist — empty state and populated view" />
+          <div class="screen-card-body">
+            <div class="screen-name">Wishlist</div>
+            <div class="screen-caption">Empty state with "Start exploring" CTA plus My Wishlists and Recently Viewed tabs — from pre-trip planning research.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Design Solutions -->
+  <section class="case-solutions" id="section-solutions">
+    <div class="solutions-intro reveal">
+      <div class="section-label">Design Solutions</div>
+      <h2>Research → <em>Design</em></h2>
+      <p>Every major design decision traces back to a specific research finding. Here's how the data shaped the product.</p>
+    </div>
+    <div class="solutions-grid">
+
+      <div class="solution-card reveal">
+        <div class="solution-num">01</div>
+        <div class="solution-from">Research Finding</div>
+        <div class="solution-finding">Users found original colors too saturated — testing showed they created cognitive noise and pulled attention away from destination imagery.</div>
+        <div class="solution-to">Design Decision</div>
+        <div class="solution-decision"><strong>Calmer blue-and-white palette.</strong> Shifted to lower-saturation tones so the UI recedes and destination photography takes center stage — the product is the place, not the app.</div>
+      </div>
+
+      <div class="solution-card reveal">
+        <div class="solution-num">02</div>
+        <div class="solution-from">Research Finding</div>
+        <div class="solution-finding">75% of travelers plan trips in advance. An empty wishlist with no guidance felt like a dead end and discouraged early engagement.</div>
+        <div class="solution-to">Design Decision</div>
+        <div class="solution-decision"><strong>Wishlist empty state with CTA.</strong> Added "Start exploring" prompt with a heart-and-plane illustration — giving users a clear next action and framing the wishlist as a planning tool, not a graveyard.</div>
+      </div>
+
+      <div class="solution-card reveal">
+        <div class="solution-num">03</div>
+        <div class="solution-from">Research Finding</div>
+        <div class="solution-finding">Users felt existing apps recommended the same popular spots to everyone, regardless of personal travel style or interests.</div>
+        <div class="solution-to">Design Decision</div>
+        <div class="solution-decision"><strong>4-question onboarding survey.</strong> Asks travel style, frequency, activity type, and experience preference on first launch — personalizing the Explore feed before the user sees a single recommendation.</div>
+      </div>
+
+      <div class="solution-card reveal">
+        <div class="solution-num">04</div>
+        <div class="solution-from">Research Finding</div>
+        <div class="solution-finding">Landmark tours, food tours, and city walks were most-requested — users want to filter by experience type, not by a popularity algorithm.</div>
+        <div class="solution-to">Design Decision</div>
+        <div class="solution-decision"><strong>Nature / Arts / Food / Sports category tabs.</strong> Four filters mapped directly to what research said people want — making discovery feel intentional rather than algorithmically driven.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Explore -->
+  <section class="case-links" id="section-explore">
+    <div style="opacity:1;transform:none;">
+      <div class="section-label">Explore</div>
+      <h2 class="links-heading">See the full<br><em>prototype</em></h2>
+      <p class="links-sub">The complete WanderScape prototype and research documentation — all in Figma.</p>
+      <div class="link-list">
+        <div role="button" tabindex="0" class="link-item"
+          onclick="window.open('https://embed.figma.com/proto/MY2oAVjLC4H3eMpl0riFA9/WanderScape--UX-Project-?node-id=4-3&scaling=scale-down&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=4%3A3&embed-host=share','_blank')"
+          onkeydown="if(event.key==='Enter')window.open('https://embed.figma.com/proto/MY2oAVjLC4H3eMpl0riFA9/WanderScape--UX-Project-?node-id=4-3&scaling=scale-down&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=4%3A3&embed-host=share','_blank')">
+          <div class="link-item-left">
+            <span class="link-item-title">Interactive Prototype</span>
+            <span class="link-item-desc">Figma — full WanderScape app flow, tap to explore</span>
+          </div>
+          <span class="link-arrow">↗</span>
+        </div>
+        <div role="button" tabindex="0" class="link-item"
+          onclick="window.open('https://www.figma.com/design/MY2oAVjLC4H3eMpl0riFA9/WanderScape--UX-Project-','_blank')"
+          onkeydown="if(event.key==='Enter')window.open('https://www.figma.com/design/MY2oAVjLC4H3eMpl0riFA9/WanderScape--UX-Project-','_blank')">
+          <div class="link-item-left">
+            <span class="link-item-title">Figma Design File</span>
+            <span class="link-item-desc">Full design file — all screens, components, and style guide</span>
+          </div>
+          <span class="link-arrow">↗</span>
+        </div>
+        <div role="button" tabindex="0" class="link-item"
+          onclick="window.open('https://docs.google.com/presentation/d/1lt8qyC4mq0pOJY039Xxs4WhDzSvvySuXoMGMJcHJDR8/edit?usp=sharing','_blank')"
+          onkeydown="if(event.key==='Enter')window.open('https://docs.google.com/presentation/d/1lt8qyC4mq0pOJY039Xxs4WhDzSvvySuXoMGMJcHJDR8/edit?usp=sharing','_blank')">
+          <div class="link-item-left">
+            <span class="link-item-title">Final Presentation</span>
+            <span class="link-item-desc">Google Slides — research findings, design decisions, and prototype walkthrough</span>
+          </div>
+          <span class="link-arrow">↗</span>
+        </div>
+        <div role="button" tabindex="0" class="link-item"
+          onclick="window.open('https://docs.google.com/presentation/d/1H6C0gpv_NqoTOeDFyXbEIgIkzxwEY7dghIYEbxHa3Gg/edit?usp=sharing','_blank')"
+          onkeydown="if(event.key==='Enter')window.open('https://docs.google.com/presentation/d/1H6C0gpv_NqoTOeDFyXbEIgIkzxwEY7dghIYEbxHa3Gg/edit?usp=sharing','_blank')">
+          <div class="link-item-left">
+            <span class="link-item-title">Progress Update</span>
+            <span class="link-item-desc">Google Slides — mid-project research and wireframe review</span>
+          </div>
+          <span class="link-arrow">↗</span>
+        </div>
+      </div>
+    </div>
+    <div style="opacity:1;transform:none;">
+      <div class="section-label">Deliverables</div>
+      <div class="deliverables">
+        <div class="deliverable-item">
+          <div class="deliverable-label">UX Research Report</div>
+          <div class="deliverable-value">10-person survey, user interviews, and GetYourGuide competitive analysis documenting user needs and market gaps</div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-label">Wireframes</div>
+          <div class="deliverable-value">Low-fidelity wireframes establishing the 4-tab structure, navigation model, and screen hierarchy</div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-label">High-Fidelity Prototype</div>
+          <div class="deliverable-value">20+ screen Figma prototype across Explore, Wishlist, Map, Profile, and onboarding — fully interactive</div>
+        </div>
+        <div class="deliverable-item">
+          <div class="deliverable-label">Usability Testing</div>
+          <div class="deliverable-value">Two rounds of testing driving the calmer blue/white color palette and wishlist empty-state improvements</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Next -->
+  <section class="case-next reveal">
+    <div>
+      <div class="next-label">Next Project</div>
+      <a href="Smartbrella.html" class="next-title" onclick="window.location.href='Smartbrella.html';return false;">Smart<em>Brella</em></a>
+    </div>
+    <span class="next-arrow">→</span>
+  </section>
+
+  <footer>
+    <span>© 2025 Erica Wang</span>
+    <span>UI/UX Designer & Frontend Developer — New York</span>
+  </footer>
+
+</div>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  });
+  (function animRing() {
+    rx += (mx - rx) * 0.35; ry += (my - ry) * 0.35;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  })();
+  document.querySelectorAll('a, button, .feature-card, .deliverable-item, .decision-item, .research-card, .link-item, [role="button"], .screen-card').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.classList.add('big'); ring.classList.add('big'); });
+    el.addEventListener('mouseleave', () => { cursor.classList.remove('big'); ring.classList.remove('big'); });
+  });
+
+  // Nav hide on scroll
+  const navEl = document.getElementById('nav');
+  let lastScrollY = 0;
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY;
+    navEl.classList.toggle('scrolled', scrollY > 40);
+    if (scrollY > lastScrollY && scrollY > 80) navEl.classList.add('hidden');
+    else navEl.classList.remove('hidden');
+    lastScrollY = scrollY;
+  });
+
+  // Reveal animation
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // Section nav active state
+  const snavItems = document.querySelectorAll('.section-nav-item');
+  const sections = ['section-overview','section-research','section-process','section-prototype','section-summary','section-recommendations','section-features','section-solutions','section-explore']
+    .map(id => document.getElementById(id)).filter(Boolean);
+  const snavObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        snavItems.forEach(item => item.classList.remove('active'));
+        const active = document.querySelector(`.section-nav-item[data-section="${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => snavObserver.observe(s));
+
+  document.querySelectorAll('.section-nav-item').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  // Prototype modal
+  function openPrototype() {
+    const modal = document.getElementById('protoModal');
+    const frame = document.getElementById('protoFrame');
+    frame.src = 'https://embed.figma.com/proto/MY2oAVjLC4H3eMpl0riFA9/WanderScape--UX-Project-?node-id=4-3&scaling=scale-down&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=4%3A3&embed-host=share';
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closePrototype() {
+    const modal = document.getElementById('protoModal');
+    const frame = document.getElementById('protoFrame');
+    frame.src = '';
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  const protoModal = document.getElementById('protoModal');
+  if (protoModal) {
+    protoModal.addEventListener('click', e => { if (e.target === protoModal) closePrototype(); });
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('protoModal').classList.contains('open')) {
+      closePrototype();
+    }
+  });
+</script>
+
+</body>
+</html>
