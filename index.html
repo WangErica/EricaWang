@@ -37,6 +37,7 @@ function closeAlsoModal(modalId, videoId) {
     <div class="nav-links">
       <a href="#work">Work</a>
       <a href="#about">About</a>
+      <a href="#contact">Contact</a>
       <a href="pdf/Erica_Wang_Resume.pdf" target="_blank" class="resume-btn">Resume ↗</a>
     </div>
   </nav>
@@ -82,7 +83,7 @@ function closeAlsoModal(modalId, videoId) {
         <div class="work-row">
           <div>
             <div class="work-title">NomNom Brand</div>
-            <div class="work-desc">Built a full brand from nothing — logo, colors, typography, brand voice, and a 20-page guidelines doc for a fictional snack-lovers' community called the Nomsters. Every color is named after a snack.</div>
+            <div class="work-desc">Built a full brand from nothing — logo, colors, typography, brand voice, and a 20-page guidelines doc for a fictional snack-lovers' community called the Nomsters. Every color is named after a snack. 🔥</div>
           </div>
           <div class="work-meta">
             <div class="work-year">Spring 2025</div>
@@ -120,7 +121,7 @@ function closeAlsoModal(modalId, videoId) {
             <div class="work-arrow">→</div>
           </div>
         </div>
-        <img class="work-thumb" src="images/WangE_1218_Environment.jpg" alt="WanderScape" />
+        <img class="work-thumb" src="videos/WanderScape.mov" alt="WanderScape" />
       </div>
 
       <div class="work-item" data-type="video" data-src="videos/Smartbrella.mov" data-link="Smartbrella.html">
@@ -151,10 +152,10 @@ function closeAlsoModal(modalId, videoId) {
       <div class="also-card"
            onmouseenter="this.querySelector('video').play()"
            onmouseleave="var v=this.querySelector('video');v.pause();v.currentTime=0;"
-           onclick="window.open('https://wangerica.github.io/PaddleBall/','_blank')">
+           onclick="window.open('https://wangerica.github.io/CreativeCoding/Paddle%20Ball/index.html','_blank')">
         <div class="also-card-preview">
           <video muted playsinline loop>
-            <source src="videos/PaddleBall.mov" type="video/mp4">
+            <source src="videos/PaddleBall.mov" type="video/quicktime">
           </video>
         </div>
         <div class="also-card-body">
@@ -379,8 +380,9 @@ function closeAlsoModal(modalId, videoId) {
     <div class="reveal">
       <div class="section-label">About</div>
       <h2 class="about-heading">I design with <em>empathy</em><br>and build with code</h2>
-      <p class="about-text">I'm a NYU Tandon grad in Integrated Design & Media — a program that lives at the crossroads of tech, design, and culture. I care about making things people actually enjoy using, which means I start with research and end with working code.</p>
-      <p class="about-text">What I love most is the full process: interviewing users, finding the "aha" in their frustrations, sketching, prototyping in Figma, then building it for real in React. I'm a Girls Who Code alum, fluent in Mandarin, and I spend my free time reverse-engineering things I find beautiful — a typeface, a physical space, someone else's UI that just feels right.</p>
+      <p class="about-tag" style="font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:24px;display:flex;align-items:center;gap:10px;"><span style="width:16px;height:1px;background:var(--accent);display:inline-block;"></span>Actively seeking UX/UI &amp; frontend roles</p>
+      <p class="about-text">I'm a recent NYU Tandon grad in Integrated Design & Media — a program that lives at the crossroads of tech, design, and culture. I care about making things people actually enjoy using, which means I start with research and end with working code.</p>
+      <p class="about-text">What I love most is the full arc: interviewing users, finding the "aha" in their frustrations, sketching, prototyping in Figma, then building it for real in React. I'm a Girls Who Code alum, fluent in Mandarin, and I spend my free time reverse-engineering things I find beautiful — a typeface, a physical space, someone else's UI that just feels right.</p>
     </div>
     <div class="reveal">
       <div class="skills-grid">
@@ -409,24 +411,53 @@ function closeAlsoModal(modalId, videoId) {
   </section>
 
   <!-- Contact -->
-  <section class="contact-section" id="contact">
+  <section id="contact" style="padding:80px 56px 100px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;">
+    <!-- Left: info -->
     <div class="reveal">
-      <div class="section-label">Contact</div>
+      <div class="section-label" style="margin-bottom:20px;">Contact</div>
       <h2 class="contact-heading">Let's make<br>something <em>real</em></h2>
-      <p class="contact-sub">I'm actively looking for full-time UX/UI design and frontend roles — I'd love to hear what you're working on.<br>Reach out, say hi, let's make something worth using.</p>
-      <a href="mailto:erica.w2539@gmail.com" class="contact-email" id="contactEmailLink">erica.w2539@gmail.com →</a>
+      <p class="contact-sub">I'm actively looking for full-time UX/UI design and frontend roles — I'd love to hear what you're working on. Reach out, say hi, let's make something worth using.</p>
+      <a href="mailto:erica.w2539@gmail.com" class="contact-email" style="margin-bottom:48px;">erica.w2539@gmail.com →</a>
+      <div style="display:flex;flex-wrap:wrap;gap:20px;margin-top:40px;align-items:center;">
+        <a href="pdf/Erica_Wang_Resume.pdf" target="_blank" class="contact-link">Resume ↗</a>
+        <span style="color:var(--border);">|</span>
+        <a href="https://www.linkedin.com/in/ericaw-25/" target="_blank" class="contact-link">LinkedIn ↗</a>
+        <span style="color:var(--border);">|</span>
+        <a href="https://github.com/WangErica?tab=repositories" target="_blank" class="contact-link">GitHub ↗</a>
+        <span style="color:var(--border);">|</span>
+        <a href="tel:3479467305" class="contact-link">(347) 946-7305</a>
+      </div>
     </div>
-    <div class="contact-right reveal">
-      <a href="pdf/Erica_Wang_Resume.pdf" target="_blank" class="contact-link">Resume ↗</a>
-      <a href="https://github.com/WangErica" target="_blank" class="contact-link">Github ↗</a>
-      <a href="https://linkedin.com" target="_blank" class="contact-link">LinkedIn ↗</a>
-      <a href="tel:3479467305" class="contact-link">(347) 946-7305</a>
+    <!-- Right: form -->
+    <div class="reveal">
+      <div class="section-label" style="margin-bottom:24px;">Send a message</div>
+      <form id="contactForm" onsubmit="sendEmail(event)" style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <input id="cf-name" type="text" placeholder="Your name" required
+            style="background:var(--bg2);border:1px solid var(--border);color:var(--white);padding:14px 18px;font-family:Outfit,sans-serif;font-size:0.9rem;font-weight:300;border-radius:2px;outline:none;transition:border-color .2s;width:100%;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          <input id="cf-email" type="email" placeholder="Your email" required
+            style="background:var(--bg2);border:1px solid var(--border);color:var(--white);padding:14px 18px;font-family:Outfit,sans-serif;font-size:0.9rem;font-weight:300;border-radius:2px;outline:none;transition:border-color .2s;width:100%;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+        </div>
+        <textarea id="cf-msg" rows="6" placeholder="What are you working on?" required
+          style="background:var(--bg2);border:1px solid var(--border);color:var(--white);padding:14px 18px;font-family:Outfit,sans-serif;font-size:0.9rem;font-weight:300;border-radius:2px;outline:none;transition:border-color .2s;resize:vertical;width:100%;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+        <button id="cf-btn" type="submit"
+          style="align-self:flex-start;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:14px 32px;font-family:Outfit,sans-serif;font-size:0.8rem;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:background .2s,color .2s;"
+          onmouseover="this.style.background='var(--accent)';this.style.color='var(--bg)'"
+          onmouseout="this.style.background='transparent';this.style.color='var(--accent)'">
+          Send Message →
+        </button>
+        <span id="cf-status" style="font-size:0.82rem;color:var(--accent);opacity:0;transition:opacity .3s;"></span>
+      </form>
     </div>
   </section>
 
   <footer>
     <span>© 2025 Erica Wang</span>
     <span>UI/UX Designer & Frontend Developer — New York</span>
+    <span style="display:flex;gap:20px;"><a href="https://github.com/WangErica?tab=repositories" target="_blank" style="color:var(--text-tertiary);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-tertiary)'">GitHub ↗</a></span>
   </footer>
 
 </div>
@@ -470,5 +501,60 @@ document.querySelectorAll('.also-card').forEach(el => {
 });
 </script>
 
+
+  <!-- EmailJS — sends form directly to Gmail -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    // ── EmailJS setup ──
+    // SETUP STEPS (one-time, takes 5 min):
+    // 1. Go to https://www.emailjs.com and sign up free
+    // 2. Add Service: Connect your Gmail → copy the Service ID
+    // 3. Create Template: set To Email = erica.w2539@gmail.com
+    //    Template variables: {{from_name}}, {{reply_to}}, {{message}}
+    //    Copy the Template ID
+    // 4. Go to Account → API Keys → copy your Public Key
+    // 5. Replace the three values below with your own
+
+    const EMAILJS_SERVICE_ID  = 'service_iifpmkd';   // e.g. 'service_abc123'
+    const EMAILJS_TEMPLATE_ID = 'template_qbxpw5t';  // e.g. 'template_xyz789'
+    const EMAILJS_PUBLIC_KEY  = 'mhgavGEJjoo0eu5Xc';   // e.g. 'AbCdEfGhIjKlMnOp'
+
+    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+    function sendEmail(e) {
+      e.preventDefault();
+      var btn    = document.getElementById('cf-btn');
+      var status = document.getElementById('cf-status');
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+
+      var params = {
+        name:      document.getElementById('cf-name').value,
+        reply_to:  document.getElementById('cf-email').value,
+        message:   document.getElementById('cf-msg').value,
+        from_name: document.getElementById('cf-name').value,
+      };
+
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params)
+        .then(function() {
+          btn.textContent = 'Sent ✓';
+          btn.style.borderColor = 'var(--accent)';
+          status.textContent = 'Message received — I will be in touch soon!';
+          status.style.opacity = '1';
+          document.getElementById('contactForm').reset();
+          setTimeout(function() {
+            btn.textContent = 'Send Message →';
+            btn.disabled = false;
+            status.style.opacity = '0';
+          }, 4000);
+        }, function(err) {
+          btn.textContent = 'Send Message →';
+          btn.disabled = false;
+          status.textContent = 'Something went wrong — email me directly.';
+          status.style.opacity = '1';
+          status.style.color = '#e07070';
+        });
+    }
+  </script>
 </body>
 </html>
